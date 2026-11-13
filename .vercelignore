@@ -1,0 +1,5 @@
+# No hace falta subir a Vercel: documentación, paquete beta y envoltorio de escritorio
+docs/
+beta/
+electron/
+dist-*/

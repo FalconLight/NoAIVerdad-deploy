@@ -1,0 +1,289 @@
+{
+  "_leeme": "Medios locales por provincia para la pestaña «Prensa local» del Mapa. Cada medio lleva su sitio web (se busca en Google News con palabras electorales de los últimos 90 días) y, si lo tiene, su canal RSS. «localidades» limita las notas a las que mencionan esos lugares (para medios que cubren varias provincias). «gnews»: false omite Google News (cuando indexa mal el sitio). «busquedas» (solo sitios WordPress con «feed») consulta además el buscador del sitio con esos términos. Solo se registran medios cuyo sitio devolvió notas reales al probarlos; agrega los que falten con el mismo formato.",
+  "provincias": {
+    "Azuay": [
+      {
+        "medio": "El Mercurio",
+        "sitio": "elmercurio.com.ec",
+        "feed": "https://elmercurio.com.ec/feed/"
+      }
+    ],
+    "Cañar": [
+      {
+        "medio": "El Mercurio",
+        "sitio": "elmercurio.com.ec",
+        "feed": "https://elmercurio.com.ec/feed/",
+        "localidades": [
+          "Cañar",
+          "Azogues",
+          "La Troncal",
+          "Biblián",
+          "Déleg",
+          "Suscal"
+        ]
+      }
+    ],
+    "Carchi": [
+      {
+        "medio": "Diario El Norte",
+        "sitio": "elnorte.ec",
+        "localidades": [
+          "Carchi",
+          "Tulcán",
+          "Montúfar",
+          "San Gabriel",
+          "Espejo",
+          "Mira",
+          "Huaca"
+        ]
+      }
+    ],
+    "Chimborazo": [
+      {
+        "medio": "Diario Los Andes",
+        "sitio": "diariolosandes.com.ec",
+        "feed": "https://diariolosandes.com.ec/feed/",
+        "localidades": [
+          "Chimborazo",
+          "Riobamba",
+          "Alausí",
+          "Guano",
+          "Colta",
+          "Chambo",
+          "Chunchi",
+          "Guamote",
+          "Penipe",
+          "Pallatanga",
+          "Cumandá"
+        ]
+      },
+      {
+        "medio": "La Prensa (Riobamba)",
+        "sitio": "laprensa.com.ec",
+        "localidades": [
+          "Chimborazo",
+          "Riobamba",
+          "Alausí",
+          "Guano",
+          "Colta",
+          "Chambo",
+          "Chunchi",
+          "Guamote",
+          "Penipe",
+          "Pallatanga",
+          "Cumandá"
+        ]
+      },
+      {
+        "medio": "Centro TV",
+        "sitio": "centrotvecuador.com",
+        "localidades": [
+          "Chimborazo",
+          "Riobamba",
+          "Alausí",
+          "Guano",
+          "Colta",
+          "Chambo",
+          "Chunchi",
+          "Guamote",
+          "Penipe",
+          "Pallatanga",
+          "Cumandá"
+        ]
+      }
+    ],
+    "Cotopaxi": [
+      {
+        "medio": "La Gaceta (Cotopaxi)",
+        "sitio": "lagaceta.com.ec",
+        "localidades": [
+          "Cotopaxi",
+          "Latacunga",
+          "Salcedo",
+          "Pujilí",
+          "Saquisilí",
+          "Pangua",
+          "La Maná",
+          "Sigchos"
+        ]
+      }
+    ],
+    "El Oro": [
+      {
+        "medio": "Diario Correo",
+        "sitio": "diariocorreo.com.ec"
+      }
+    ],
+    "Esmeraldas": [
+      {
+        "medio": "Diario La Hora (Esmeraldas)",
+        "sitio": "lahora.com.ec/esmeraldas"
+      }
+    ],
+    "Imbabura": [
+      {
+        "medio": "Diario El Norte",
+        "sitio": "elnorte.ec",
+        "localidades": [
+          "Imbabura",
+          "Ibarra",
+          "Otavalo",
+          "Cotacachi",
+          "Antonio Ante",
+          "Atuntaqui",
+          "Pimampiro",
+          "Urcuquí"
+        ]
+      },
+      {
+        "medio": "Periódico Expectativa",
+        "sitio": "expectativa.ec",
+        "feed": "https://www.expectativa.ec/feed/"
+      },
+      {
+        "medio": "FM Ritmo Ibarra",
+        "sitio": "fmritmoibarra.com",
+        "localidades": [
+          "Imbabura",
+          "Ibarra",
+          "Otavalo",
+          "Cotacachi",
+          "Antonio Ante",
+          "Atuntaqui",
+          "Pimampiro",
+          "Urcuquí"
+        ]
+      }
+    ],
+    "Loja": [
+      {
+        "medio": "Crónica de Loja",
+        "sitio": "cronica.com.ec",
+        "feed": "https://cronica.com.ec/feed/"
+      },
+      {
+        "medio": "Diario La Hora (Loja)",
+        "sitio": "lahora.com.ec/loja"
+      }
+    ],
+    "Los Ríos": [
+      {
+        "medio": "KCH Comunicación",
+        "sitio": "kchcomunicacion.com",
+        "feed": "https://kchcomunicacion.com/feed/",
+        "gnews": false,
+        "localidades": [
+          "Los Ríos",
+          "Quevedo",
+          "Babahoyo",
+          "Buena Fe",
+          "Ventanas",
+          "Vinces",
+          "Valencia",
+          "Mocache",
+          "Baba",
+          "Palenque",
+          "Puebloviejo",
+          "Urdaneta",
+          "Montalvo"
+        ],
+        "busquedas": [
+          "elecciones Los Ríos",
+          "candidatos Quevedo",
+          "candidatos Babahoyo",
+          "prefectura Los Ríos",
+          "alcaldía Quevedo"
+        ]
+      },
+      {
+        "medio": "El Diario (Manabí)",
+        "sitio": "eldiario.ec",
+        "feed": "https://www.eldiario.ec/feed/",
+        "localidades": [
+          "Los Ríos",
+          "Quevedo",
+          "Babahoyo",
+          "Buena Fe",
+          "Ventanas",
+          "Vinces",
+          "Valencia",
+          "Mocache"
+        ]
+      }
+    ],
+    "Manabí": [
+      {
+        "medio": "El Diario (Manabí)",
+        "sitio": "eldiario.ec",
+        "feed": "https://www.eldiario.ec/feed/"
+      },
+      {
+        "medio": "Manabí Noticias",
+        "sitio": "manabinoticias.com",
+        "feed": "https://manabinoticias.com/feed/",
+        "gnews": false
+      }
+    ],
+    "Napo": [
+      {
+        "medio": "Actualidades (Napo)",
+        "sitio": "actualidades.com.ec",
+        "localidades": [
+          "Napo",
+          "Tena",
+          "Archidona",
+          "El Chaco",
+          "Quijos"
+        ]
+      }
+    ],
+    "Pastaza": [
+      {
+        "medio": "El Observador (Pastaza)",
+        "sitio": "elobservador.ec",
+        "feed": "https://elobservador.ec/feed/"
+      },
+      {
+        "medio": "Diario Los Andes",
+        "sitio": "diariolosandes.com.ec",
+        "localidades": [
+          "Pastaza",
+          "Puyo",
+          "Mera",
+          "Santa Clara",
+          "Arajuno"
+        ]
+      }
+    ],
+    "Santo Domingo de los Tsáchilas": [
+      {
+        "medio": "El Diario (Manabí)",
+        "sitio": "eldiario.ec",
+        "feed": "https://www.eldiario.ec/feed/",
+        "localidades": [
+          "Santo Domingo",
+          "Tsáchila",
+          "Tsáchilas",
+          "La Concordia"
+        ]
+      }
+    ],
+    "Tungurahua": [
+      {
+        "medio": "El Heraldo (Ambato)",
+        "sitio": "elheraldo.com.ec",
+        "feed": "https://www.elheraldo.com.ec/feed/"
+      },
+      {
+        "medio": "Diario La Hora (Tungurahua)",
+        "sitio": "lahora.com.ec/tungurahua"
+      }
+    ],
+    "Zamora Chinchipe": [
+      {
+        "medio": "El Amazónico",
+        "sitio": "elamazonico.com"
+      }
+    ]
+  }
+}

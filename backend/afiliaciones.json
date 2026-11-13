@@ -1,0 +1,1028 @@
+{
+  "_leeme": "Afiliación política de páginas y pagadores de anuncios. SOLO se muestra lo que tenga una fuente enlazada. Meta no publica afiliación: no la deduzcas del nombre ni del contenido.",
+  "_campos": {
+    "nombre": "Nombre de la página o del pagador tal como aparece en Meta. Se compara sin tildes ni mayúsculas (Muñoz = Munoz): puedes escribirlo con la ñ aunque Meta lo tenga sin ella",
+    "page_id": "ID de la página en Meta (opcional; mejora la coincidencia)",
+    "page_ids": "Opcional. TODOS los ID de página de Meta de la misma entidad (una persona puede tener varias páginas), incluido el principal. Todas comparten la afiliación. Un ID no puede estar en dos entradas",
+    "otros_nombres": "Opcional. Otros nombres con los que aparece la misma entidad en Meta (el pagador declarado con su segundo nombre, otra grafía, otra página). Se comparan sin tildes. Un nombre no puede estar en dos entradas: en la web, marca las entradas en Entidades y pulsa «Unificar»",
+    "tipo": "partido | candidato | persona | institucion | medio | agencia | gobierno | empresa | otro",
+    "afiliacion": "Partido o movimiento (texto) o null si no se conoce",
+    "fuente": "URL que respalda el dato (CNE, sitio del partido, prensa)",
+    "verificado": "true solo si la fuente confirma el dato",
+    "actualizado": "AAAA-MM-DD",
+    "partido": "Nombre corto del partido o movimiento (p. ej. ADN, PSC). Se usa para agrupar y colorear en el grafo. Déjalo en null si no es un partido. «Neutral» (solo en medios, tipo «medio») marca un medio que informa sin alineación partidista: se pinta en gris y no se une a ningún partido."
+  },
+  "partidos": {
+    "ADN": {
+      "color": "#a855f7"
+    },
+    "RC": {
+      "color": "#19d9a5"
+    },
+    "PSC": {
+      "color": "#f7bc0f"
+    },
+    "CREO": {
+      "color": "#164f91"
+    }
+  },
+  "entidades": [
+    {
+      "nombre": "Consejo Nacional Electoral del Ecuador",
+      "page_id": "129803967052432",
+      "tipo": "institucion",
+      "afiliacion": "Sin afiliación (autoridad electoral)",
+      "partido": null,
+      "fuente": "https://www.cne.gob.ec",
+      "verificado": true,
+      "actualizado": "2026-10-27"
+    },
+    {
+      "nombre": "Johnny Terán Salcedo",
+      "page_id": "476397709077724",
+      "tipo": "persona",
+      "afiliacion": "Partido Social Cristiano (PSC); prefecto de Los Ríos",
+      "partido": "PSC",
+      "fuente": "https://www.expreso.ec/actualidad/johnny-teran-prefecto-psc-dice-apoyara-kronfle-215713",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Cynthia Viteri",
+      "page_id": "150237258650302",
+      "tipo": "candidato",
+      "afiliacion": "Acción Democrática Nacional (ADN)",
+      "partido": "ADN",
+      "fuente": "https://www.primicias.ec/politica/elecciones/seccionales-adelantadas-2027/daniel-noboa-cynthia-viteri-precandidata-alcaldia-guayaquil-afiliada-adn-128642/",
+      "verificado": true,
+      "actualizado": "2026-10-27"
+    },
+    {
+      "nombre": "Pichincha Digital",
+      "page_id": "424526284084660",
+      "tipo": "medio",
+      "afiliacion": "Medio neutral: sin alineación partidista",
+      "partido": "Neutral",
+      "fuente": "https://www.facebook.com/PichinchaDigitalEC/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Andrés Roche 6 - MG",
+      "page_id": "417942615323696",
+      "tipo": "candidato",
+      "afiliacion": "Partido Social Cristiano (PSC)",
+      "partido": "PSC",
+      "fuente": "https://www.teleamazonas.com/actualidad/noticias/politica/andres-roche-inscribio-candidatura-alcaldia-guayaquil-jaime-nebot-125441/",
+      "verificado": true,
+      "actualizado": "2026-10-27"
+    },
+    {
+      "nombre": "Adn Ecuador Oficial",
+      "page_id": "102425026018435",
+      "tipo": "partido",
+      "afiliacion": "Acción Democrática Nacional (ADN)",
+      "partido": "ADN",
+      "fuente": "https://www.facebook.com/102425026018435",
+      "verificado": true,
+      "actualizado": "2026-10-27"
+    },
+    {
+      "nombre": "Noticias En la Comunidad",
+      "page_id": "386379378156555",
+      "tipo": null,
+      "afiliacion": null,
+      "partido": null,
+      "fuente": null,
+      "verificado": false,
+      "actualizado": null
+    },
+    {
+      "nombre": "Indignados Ecuador",
+      "page_id": "246788515402052",
+      "tipo": null,
+      "afiliacion": null,
+      "partido": null,
+      "fuente": null,
+      "verificado": false,
+      "actualizado": null
+    },
+    {
+      "nombre": "Goberna Ecuador",
+      "page_id": "108657847619569",
+      "otros_nombres": [
+        "Grupo Goberna"
+      ],
+      "tipo": "agencia",
+      "afiliacion": "Consultora política y escuela de formación (Grupo Goberna)",
+      "partido": null,
+      "fuente": "https://grupogoberna.com/nosotros/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Noticias Ecuador en vivo",
+      "page_id": "103798235459204",
+      "tipo": null,
+      "afiliacion": null,
+      "partido": null,
+      "fuente": null,
+      "verificado": false,
+      "actualizado": null
+    },
+    {
+      "nombre": "EP Petroecuador",
+      "page_id": "1484276845202475",
+      "tipo": "gobierno",
+      "afiliacion": "Empresa Pública de Hidrocarburos del Ecuador (empresa pública)",
+      "partido": null,
+      "fuente": "https://www.eppetroecuador.ec",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "El Cruce",
+      "page_id": "432165299969020",
+      "tipo": null,
+      "afiliacion": null,
+      "partido": null,
+      "fuente": null,
+      "verificado": false,
+      "actualizado": null
+    },
+    {
+      "nombre": "Lalo Mendoza Hurtado",
+      "page_id": "103803838238254",
+      "tipo": null,
+      "afiliacion": null,
+      "partido": null,
+      "fuente": null,
+      "verificado": false,
+      "actualizado": null
+    },
+    {
+      "nombre": "Satori Publicidad",
+      "page_id": null,
+      "tipo": "agencia",
+      "afiliacion": "agencia",
+      "partido": null,
+      "fuente": "https://www.satoriagenciadigital.com/servicios",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Eduardo Mendoza Palma",
+      "page_id": "168388773939137",
+      "tipo": "candidato",
+      "afiliacion": "Acción Democrática Nacional (ADN); asambleísta y precandidato a la Prefectura de Los Ríos",
+      "partido": "ADN",
+      "fuente": "https://www.eluniverso.com/noticias/politica/mas-del-10-de-los-asambleistas-son-postulados-como-precandidatos-para-las-seccionales-de-noviembre-2026-nota/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Apoyo a Jorge Pinto",
+      "page_id": "1309069735626607",
+      "tipo": "candidato",
+      "afiliacion": "Partido Sociedad Patriótica (PSP, lista 3); candidato a la Prefectura de Pichincha",
+      "partido": "PSP",
+      "fuente": "https://www.elcomercio.com/actualidad/politica/estos-son-candidatos-inscritos-alcaldia-quito-prefectura-pichincha/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Web Plus Solutions",
+      "page_id": null,
+      "tipo": null,
+      "afiliacion": null,
+      "partido": null,
+      "fuente": null,
+      "verificado": false,
+      "actualizado": null
+    },
+    {
+      "nombre": "Rommel Durán",
+      "page_id": "1255697507626235",
+      "tipo": "persona",
+      "afiliacion": "Movimiento Catamayo Unido, lista 107 (autodeclarada en un anuncio de la propia página); vicealcalde de Catamayo según Crónica de Loja (feb-2025)",
+      "partido": "Catamayo Unido",
+      "fuente": "https://www.facebook.com/ads/library/?id=2017945205574213",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Ec Protect Rigths",
+      "page_id": null,
+      "tipo": null,
+      "afiliacion": null,
+      "partido": null,
+      "fuente": null,
+      "verificado": false,
+      "actualizado": null
+    },
+    {
+      "nombre": "Jomar Cevallos Moreno",
+      "page_id": "111853737097894",
+      "tipo": "candidato",
+      "afiliacion": "Movimiento Somos Libres (lista 62); candidato a la Prefectura de Imbabura",
+      "partido": "Somos Libres",
+      "fuente": "https://www.expectativa.ec/candidaturas-en-firme-para-alcaldes-de-la-provincia-y-prefectura-de-imbabura/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Shimiec",
+      "page_id": null,
+      "tipo": null,
+      "afiliacion": null,
+      "partido": null,
+      "fuente": null,
+      "verificado": false,
+      "actualizado": null
+    },
+    {
+      "nombre": "Windows City HD",
+      "page_id": "289901048627699",
+      "tipo": "medio",
+      "afiliacion": "agencia",
+      "partido": null,
+      "fuente": "https://windowscityhd.com/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "WINDOWS CITY 4K",
+      "page_id": null,
+      "tipo": "medio",
+      "afiliacion": "agencia",
+      "partido": null,
+      "fuente": "https://windowscityhd.com/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Carlos Torres Alvarado - El Máster",
+      "page_id": "1392146503982087",
+      "tipo": "candidato",
+      "afiliacion": "Candidato a la Alcaldía de Pelileo, según su sitio de campaña (autodeclarado); organización política no indicada",
+      "partido": null,
+      "fuente": "https://pelileoconelmaster.com",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "FØLK Studio",
+      "page_id": null,
+      "tipo": "agencia",
+      "afiliacion": "Sin afiliación política documentada (agencia de marketing y comunicación)",
+      "partido": null,
+      "fuente": "https://folk.ec",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Galo Lara Yépez",
+      "page_id": "142009445862297",
+      "tipo": "candidato",
+      "afiliacion": "Acción Democrática Nacional (ADN); candidato a la Alcaldía de Quevedo (dejó la Gobernación de Los Ríos)",
+      "partido": "ADN",
+      "fuente": "https://www.vistazo.com/politica/2026-08-07-galo-lara-renuncia-gobernacion-rios-buscar-alcaldia-quevedo-adn-elecciones-seccionales-nacional-CE11151425",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Mario Mancino",
+      "page_id": "101953791456280",
+      "tipo": "candidato",
+      "afiliacion": "Acción Democrática Nacional (ADN); prefecto de Loja, busca la reelección",
+      "partido": "ADN",
+      "fuente": "https://cronica.com.ec/2026/08/13/la-jugada-de-adn-que-sacude-la-politica-lojana-valdivieso-y-mancino-cartas-del-oficialismo/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Agustin Casanova",
+      "page_id": "522648914477270",
+      "tipo": "candidato",
+      "afiliacion": "Movimiento Caminantes (fundador); precandidato a la Prefectura de Manabí",
+      "partido": "Caminantes",
+      "fuente": "https://eldiario.ec/manabi/agustin-casanova-es-proclamado-precandidato-a-la-prefectura-de-manabi-por-caminantes-28062026/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Héctor Párraga",
+      "page_id": "1269623692893599",
+      "tipo": "candidato",
+      "afiliacion": "Alianza Somos Manabas (Centro Democrático lista 1, Avanza lista 8, Soy Manaba lista 61, Machete lista 63); candidato a la Alcaldía de Portoviejo",
+      "partido": "Somos Manabas",
+      "fuente": "https://www.eluniverso.com/noticias/ecuador/candidatos-a-alcalde-de-portoviejo-2026-quienes-son-nota/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Leonel Muñoz Zambrano",
+      "page_id": "1135952112933715",
+      "page_ids": [
+        "1135952112933715",
+        "1289576747578559"
+      ],
+      "tipo": "candidato",
+      "afiliacion": "Acción Democrática Nacional (ADN); candidato a la Alcaldía de Portoviejo",
+      "partido": "ADN",
+      "fuente": "https://www.eldiario.ec/portoviejo/leonel-munoz-nosotros-vamos-a-ganar-somos-una-propuesta-que-esta-creciendo-12102026",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Hernán Salcedo Loor",
+      "page_id": "843590485803111",
+      "otros_nombres": [
+        "Hernán Vladimir Salcedo Loor"
+      ],
+      "tipo": "candidato",
+      "afiliacion": "Acción Democrática Nacional (ADN), lista 7; candidato a la Alcaldía de Manta",
+      "partido": "ADN",
+      "fuente": "https://www.primicias.ec/politica/elecciones/seccionales-adelantadas-2027/candidatos-inscripcion-alcaldia-alcalde-manta-manabi-cne-130825/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Ab. Mónica Luzárraga S.",
+      "page_id": "424011907465342",
+      "tipo": "candidato",
+      "afiliacion": "Alianza Despierta (Unidad Popular lista 2 y Pachakutik lista 18); candidata a la Alcaldía de Guayaquil",
+      "partido": "Despierta",
+      "fuente": "https://primicias.ec/politica/elecciones/seccionales-adelantadas-2027/inscripcion-candidaturas-alcaldias-quito-guayaquil-cuenca-130420/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Steven Ordóñez",
+      "page_id": "105249784585621",
+      "tipo": "candidato",
+      "afiliacion": "Propuesta Humana para el Desarrollo (PHD, lista 67); asambleísta y precandidato a la Prefectura de El Oro",
+      "partido": "PHD",
+      "fuente": "https://www.primicias.ec/politica/elecciones/seccionales-adelantadas-2027/precandidatos-alcalde-prefecto-oro-machala-santa-rosa-pasaje-partidos-126959/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "César Encalada",
+      "page_id": "606943846407833",
+      "tipo": "candidato",
+      "afiliacion": "CREO; precandidato a la Prefectura de El Oro (exalcalde de Pasaje)",
+      "partido": "CREO",
+      "fuente": "https://www.primicias.ec/politica/elecciones/seccionales-adelantadas-2027/precandidatos-alcalde-prefecto-oro-machala-santa-rosa-pasaje-partidos-126959/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Andres Vazquez",
+      "page_id": "124526801530404",
+      "tipo": "candidato",
+      "afiliacion": "Movimiento Amigo (correísmo); precandidato a la Alcaldía de Machala",
+      "partido": "Amigo",
+      "fuente": "https://www.expreso.ec/ecuador/machala-perfila-proxima-alcaldia-son-precandidatos-2026-287975.html",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Lady Cedeño",
+      "page_id": "1435098649980287",
+      "tipo": "candidato",
+      "afiliacion": "Unidad Popular (UP), lista 2; precandidata a la Prefectura de Santo Domingo de los Tsáchilas",
+      "partido": "UP",
+      "fuente": "https://www.expreso.ec/politica/elecciones-seccionales-2026-precandidatos-prefecturas-provincia-provincia-287959.html",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Jorge Saavedra Palma",
+      "page_id": "1015575041648963",
+      "tipo": "candidato",
+      "afiliacion": "Movimiento Futuro (lista 20); precandidato a la Prefectura de Santa Elena",
+      "partido": "Futuro",
+      "fuente": "https://www.eluniverso.com/noticias/politica/estas-son-las-precandidaturas-para-la-prefectura-de-santa-elena-y-otros-dos-cantones-de-la-provincia-nota/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Victor Valdivieso Cordova",
+      "page_id": "2034084410025516",
+      "tipo": "candidato",
+      "afiliacion": "Somos (lista 65); candidato a la Alcaldía de La Libertad (exalcalde)",
+      "partido": "Somos",
+      "fuente": "https://www.eluniverso.com/noticias/politica/reelecciones-exautoridades-y-nuevos-rostros-marcan-las-precandidaturas-en-santa-elena-nota/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Cinthia Gabriela García",
+      "page_id": "1733972050153503",
+      "tipo": "candidato",
+      "afiliacion": "Partido Social Cristiano (PSC); concejala de Guayaquil, busca la reelección (distrito 2)",
+      "partido": "PSC",
+      "fuente": "https://www.eluniverso.com/politica/elecciones/quienes-son-los-candidatos-que-buscan-llegar-al-concejo-de-guayaquil-en-las-elecciones-seccionales-nota/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Cesar Palacios Alejandro",
+      "page_id": "594405021016605",
+      "tipo": "persona",
+      "afiliacion": "Revolución Ciudadana (RC); asambleísta por Santa Elena",
+      "partido": "RC",
+      "fuente": "https://www.asambleanacional.gob.ec/es/blogs/cesar-palacios-alejandro",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Apoyo Victor Gómez",
+      "page_id": "1203289502871937",
+      "tipo": "candidato",
+      "afiliacion": "Alianza Fuerza Ciudadana Sucumbiense (Partido Sociedad Patriótica y Pachakutik), según un comunicado de la propia página",
+      "partido": "Fuerza Ciudadana Sucumbiense",
+      "fuente": "https://www.facebook.com/ads/library/?id=970520726127664",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Revolución Ciudadana - Valencia",
+      "page_id": "115514534378379",
+      "tipo": "otro",
+      "afiliacion": "Partido Socialista Ecuatoriano (PSE), lista 17, la lista del correísmo; la página apoya a Daniel Macías López (Alcaldía de Valencia)",
+      "partido": "PSE",
+      "fuente": "https://www.facebook.com/ads/library/?id=1847166099754546",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Daniel Noboa  Azin",
+      "page_id": "115012276965624",
+      "tipo": "persona",
+      "afiliacion": "Presidente de la república",
+      "partido": "ADN",
+      "fuente": "https://adn-ecuador.org/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Lisette Naranjo Herdoíza",
+      "page_id": "1170371612834346",
+      "tipo": "persona",
+      "afiliacion": "ADN, AMBATO",
+      "partido": "ADN",
+      "fuente": "https://www.facebook.com/photo/?fbid=122120661771408338&set=pb.61592250146468.-2207520000",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Alejandro Lara",
+      "page_id": "627440061233195",
+      "tipo": "persona",
+      "afiliacion": "ADN",
+      "partido": "ADN",
+      "fuente": "https://www.asambleanacional.gob.ec/es/blogs/alejandro-lara-perez",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Christian Meléndez",
+      "page_id": "434404329754682",
+      "tipo": "candidato",
+      "afiliacion": "ADN",
+      "partido": "ADN",
+      "fuente": "https://www.facebook.com/christianmelendezec/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Wilman Rodrigo Rodríguez Berrú",
+      "page_id": "101928979134250",
+      "tipo": null,
+      "afiliacion": "JUNTOS PODEMOS",
+      "partido": "JUNTOS PODEMOS",
+      "fuente": "https://www.facebook.com/reel/1425642515691392",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Natalia Escobar",
+      "page_id": "1118024578062004",
+      "tipo": "candidato",
+      "afiliacion": "PSP Partido Sociedad Patriotica",
+      "partido": "PSP",
+      "fuente": "https://www.facebook.com/share/v/1CiFeaUrMf/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Christian Lozada",
+      "page_id": "106345244458056",
+      "tipo": "candidato",
+      "afiliacion": "CREO, Candidato a Prefecto",
+      "partido": "CREO",
+      "fuente": "https://www.primicias.ec/politica/elecciones/seccionales-adelantadas-2027/denuncia-creo-atentado-christian-lozada-candidato-prefecto-orellana-ataque-joya-sachas-132518/",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "Alcaldía Ciudadana de Quinindé",
+      "page_id": "340352669415685",
+      "tipo": "gobierno",
+      "afiliacion": "Revolución Ciudadana, Alcalde actual",
+      "partido": "RC",
+      "fuente": "https://www.lahora.com.ec/esmeraldas/Ronal-Moreno-alcalde-electo-en-Quininde-20230208-0062.html",
+      "verificado": true,
+      "actualizado": "2026-11-05"
+    },
+    {
+      "nombre": "NANKI SAANT",
+      "page_id": "106438247722203",
+      "tipo": "persona",
+      "afiliacion": "Revolución Ciudadana (RC); asambleísta por Morona Santiago",
+      "partido": "RC",
+      "fuente": "https://www.asambleanacional.gob.ec/blogs/nankisaant",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Jesús Cárdenas López",
+      "page_id": "605345626003818",
+      "tipo": "candidato",
+      "afiliacion": "Movimiento CREO; candidato a la Alcaldía de Loja",
+      "partido": "CREO",
+      "fuente": "https://cronica.com.ec/2026/10/23/plan-triple-a-jesus-cardenas-priorizara-agua-potable-alcantarillado-y-asfaltado/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Giovanna Ubidia",
+      "page_id": "818240478032966",
+      "tipo": "candidato",
+      "afiliacion": "Candidata a la Prefectura de Pichincha por Acción Democrática Nacional (ADN), lista 7",
+      "partido": "ADN",
+      "fuente": "https://www.teleamazonas.com/actualidad/noticias/politica/pichincha-registro-inscritos-elecciones-seccionales-125644/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Niels Olsen",
+      "page_id": "1080987255412259",
+      "tipo": "candidato",
+      "afiliacion": "Candidato a la Alcaldía de Samborondón por el movimiento ADN (Acción Democrática Nacional)",
+      "partido": "ADN",
+      "fuente": "https://www.eldiario.ec/centro/niels-olsen-aspira-a-la-alcaldia-de-samborondon-tras-la-nominacion-de-cynthia-viteri-por-el-oficialismo-16072026/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "La voz de Guayas",
+      "page_id": "111690498456382",
+      "tipo": "otro",
+      "afiliacion": "Página de facebook realizando propaganda para el Candidato a la Prefectura del Guayas por el Partido Social Cristiano (PSC)",
+      "partido": "PSC",
+      "fuente": "https://www.expreso.ec/politica/juan-carlos-gonzalez-al-guayas-hay-que-manejarlo-como-un-paciente-290363.html",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Diana Coloma",
+      "page_id": "146702339358953",
+      "tipo": "candidato",
+      "afiliacion": "Partido Social Cristiano (PSC); candidata a la Alcaldía de Santo Domingo",
+      "partido": "PSC",
+      "fuente": "https://www.eldiario.ec/santo-domingo-2/agua-mas-barata-y-hospital-municipal-las-propuestas-de-diana-coloma-para-santo-domingo-29082026/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Carla Larrea",
+      "page_id": "476751992854666",
+      "tipo": "candidato",
+      "afiliacion": "Candidata a la Alcaldía de Quito por CREO (Creando Oportunidades), lista 21",
+      "partido": "CREO",
+      "fuente": "https://www.primicias.ec/politica/elecciones/seccionales-adelantadas-2027/candidatos-alcaldia-quito-trayectoria-perfiles-titulos-135722/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Harold Burbano",
+      "page_id": "1263607136826968",
+      "tipo": "candidato",
+      "afiliacion": "Candidato a la Alcaldía de Quito por Acción Democrática Nacional (ADN), lista 7",
+      "partido": "ADN",
+      "fuente": "https://www.primicias.ec/politica/elecciones/seccionales-adelantadas-2027/candidatos-alcaldia-quito-trayectoria-perfiles-titulos-135722/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Yadira Bayas",
+      "page_id": "100482812774198",
+      "otros_nombres": [
+        "Jadira Bayas Uriarte"
+      ],
+      "tipo": "candidato",
+      "afiliacion": "Acción Democrática Nacional (ADN); exasambleísta, candidata de ADN en Santo Domingo de los Tsáchilas (seccionales 2026)",
+      "partido": "ADN",
+      "fuente": "https://www.extra.ec/noticia/politica/archivada-denuncia-electoral-yadira-bayas-candidata-adn-166003.html",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Liliana Silva",
+      "page_id": "278866099488555",
+      "tipo": "candidato",
+      "afiliacion": "Unidad Popular (UP), lista 2; candidata a la Alcaldía de Santo Domingo",
+      "partido": "UP",
+      "fuente": "https://www.vistazo.com/politica/2026-09-14-unidad-popular-elecciones-candidata-santo-domingo-PA11225965",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Rina Pozo",
+      "page_id": "102439115981774",
+      "tipo": "candidato",
+      "afiliacion": "Acción Democrática Nacional (ADN), lista 7; candidata a la Alcaldía de Azogues",
+      "partido": "ADN",
+      "fuente": "https://elmercurio.com.ec/?p=1275710",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Johnny Terán Barragán",
+      "page_id": "1463467650455406",
+      "tipo": "candidato",
+      "afiliacion": "Partido Social Cristiano (PSC); asambleísta y precandidato a la Prefectura de Los Ríos",
+      "partido": "PSC",
+      "fuente": "https://kchcomunicacion.com/?p=464971",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Guillermo Lasso",
+      "page_id": "401049006603015",
+      "tipo": "persona",
+      "afiliacion": "Movimiento CREO (Creando Oportunidades); expresidente de la República (2021-2023), descrito como líder del movimiento",
+      "partido": "CREO",
+      "fuente": "https://www.primicias.ec/politica/elecciones/seccionales-adelantadas-2027/creo-elecciones-seccionales-candidatos-lasso-primarias-126761/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Danilo Palacios",
+      "page_id": "215912918261738",
+      "tipo": "candidato",
+      "afiliacion": "Acción Democrática Nacional (ADN), lista 7; precandidato a la Prefectura de El Oro",
+      "partido": "ADN",
+      "fuente": "https://www.expreso.ec/politica/disputa-prefectura-oro-precandidatos-movimientos-2026-287994.html",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Guayaquil Ciudadano",
+      "page_id": "111163571605114",
+      "tipo": "candidato",
+      "afiliacion": "Candidata a la Alcaldía de Guayaquil (Fiorella Ycaza) por el Partido Socialista Ecuatoriano (PSE), lista 17",
+      "partido": "PSE",
+      "fuente": "https://www.elcomercio.com/actualidad/politica/candidatura-fiorella-ycaza-esposa-aquiles-alvarez-alcaldia-guayaquil-calificada/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Esteban Quirola",
+      "page_id": "467339826674179",
+      "tipo": "candidato",
+      "afiliacion": "Movimiento SIII 88, en alianza con Pueblo, Igualdad y Democracia (PID); precandidato a la Prefectura de El Oro",
+      "partido": "SIII",
+      "fuente": "https://www.expreso.ec/politica/disputa-prefectura-oro-precandidatos-movimientos-2026-287994.html",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Dra. Lorena Baque",
+      "page_id": "109674000571746",
+      "tipo": "candidato",
+      "afiliacion": "Acción Democrática Nacional (ADN); precandidata a la Alcaldía de Santo Domingo (jul-2026)",
+      "partido": "ADN",
+      "fuente": "https://www.eldiario.ec/santo-domingo-2/lorena-baque-presenta-sus-prioridades-como-precandidata-a-la-alcaldia-de-santo-domingo-29072026/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Jaime Guevara",
+      "page_id": "107526082366348",
+      "tipo": "candidato",
+      "afiliacion": "Unidos por Pastaza (lista 61); candidato inscrito a la Alcaldía del cantón Pastaza",
+      "partido": "Unidos por Pastaza",
+      "fuente": "https://elobservador.ec/cuatro-candidatos-inscritos-aspiran-llegara-la-alcaldia-de-pastaza/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "El Joven David",
+      "page_id": "100226325056310",
+      "tipo": "candidato",
+      "afiliacion": "Candidato a la Prefectura del Azuay con el respaldo del movimiento Igualdad (lista 82)",
+      "partido": "Igualdad",
+      "fuente": "https://elmercurio.com.ec/elecciones-seccionales-2027/2026/09/04/siete-candidatos-prefectura-azuay/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Yaku Perez Guartambel",
+      "page_id": "2069422096530873",
+      "tipo": "candidato",
+      "afiliacion": "Candidato a la Alcaldía de Cuenca por la alianza Unidos por el Agua (Unidad Popular, Izquierda Democrática y Futuro)",
+      "partido": "Unidos por el Agua",
+      "fuente": "https://primicias.ec/politica/elecciones/seccionales-adelantadas-2027/inscripcion-candidaturas-alcaldias-quito-guayaquil-cuenca-130420/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Gabriela Subia",
+      "page_id": "1407122469418178",
+      "tipo": "candidato",
+      "afiliacion": "Candidata a la Alcaldía de Rumiñahui por la alianza Grandes Soluciones (PSC lista 6 y Rumiñahui en Acción lista 102)",
+      "partido": "PSC",
+      "fuente": "https://kchcomunicacion.com/?p=510824",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Alvaro Castillo M",
+      "page_id": "982451865177883",
+      "tipo": "candidato",
+      "afiliacion": "Avanza (lista 8); Álvaro Daniel Castillo Monge, candidato a la Alcaldía de Ibarra",
+      "partido": "Avanza",
+      "fuente": "https://www.primicias.ec/politica/elecciones/seccionales-adelantadas-2027/candidatos-alcaldia-ibarra-perfiles-trayectoria-titulos-135727/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Ronal Moreno",
+      "page_id": "112128961403701",
+      "tipo": "persona",
+      "afiliacion": "Revolución Ciudadana (RC); alcalde de Quinindé",
+      "partido": "RC",
+      "fuente": "https://www.eldiario.ec/centro/en-el-interior-de-mi-vivienda-se-encontraban-mi-madre-y-mi-hermana-se-trata-de-un-hecho-grave-que-no-puede-pasar-desapercibido-expreso-el-alcalde-de-quininde-tras-atentado-23042026/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Amigos De John Vinueza",
+      "page_id": "2174951136066727",
+      "tipo": "candidato",
+      "afiliacion": "Apoya a John Vinueza, candidato a la reelección en la Alcaldía de Riobamba por «Cuidamos de la Gente» (lista 1-21)",
+      "partido": "Cuidamos de la Gente",
+      "fuente": "https://diariolosandes.com.ec/nueve-candidaturas-en-firme-para-la-alcaldia-de-riobamba/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Elena Tituana Sánchez",
+      "page_id": "115859176456490",
+      "tipo": "persona",
+      "afiliacion": "ACCION CIUDADANA",
+      "partido": "ACCION CIUDADANA",
+      "fuente": "https://www.facebook.com/reel/2182657802652678",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Mariana Herrera Garcia",
+      "page_id": "102759019171504",
+      "tipo": "persona",
+      "afiliacion": "PSC Candidata de daule",
+      "partido": "PSC",
+      "fuente": "https://www.instagram.com/p/DcHE9D-zM7o/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "William Perugachi",
+      "page_id": "1214888608678663",
+      "tipo": "candidato",
+      "afiliacion": "Candidato a la Alcaldía de Cayambe por Acción Democrática Nacional (ADN), lista 7, según un medio local (jul-2026); inscripción sin confirmar",
+      "partido": "ADN",
+      "fuente": "https://sonysen.com/index.php/2026/07/24/elecciones-cayambe-2026-candidatos-alcaldia/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "ADN DURÁN OK",
+      "page_id": "381599655042971",
+      "tipo": "otro",
+      "afiliacion": "Página afiliada al partido ADN",
+      "partido": "ADN",
+      "fuente": "https://www.facebook.com/profile.php?id=61564413824402#",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Javier Serrano",
+      "page_id": "1962775863760376",
+      "tipo": "persona",
+      "afiliacion": "Alcalde de Azogues; en 2023 fue elegido por la alianza Cañar Emprende (Revolución Ciudadana y PSE)",
+      "partido": "RC",
+      "fuente": "https://elmercurio.com.ec/?p=1008050",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Mariella Bravo de Lorences",
+      "page_id": "1219861647877887",
+      "tipo": "candidato",
+      "afiliacion": "Precandidata a la Alcaldía de Babahoyo (autodeclarada en un anuncio de la propia página, 2026-10-25); organización no indicada",
+      "partido": null,
+      "fuente": "https://www.facebook.com/ads/library/?id=1493927102568002",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Clemente Bravo",
+      "page_id": "903973419690423",
+      "tipo": "candidato",
+      "afiliacion": "ADN",
+      "partido": "ADN",
+      "fuente": "https://www.eluniverso.com/noticias/politica/alcaldia-de-machala-2027-de-los-diez-precandidatos-registrados-uno-ya-quedo-fuera-y-otro-esta-la-espera-de-la-resolucion-nota/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Secretaría General de Comunicación Ecuador",
+      "page_id": "400709789941558",
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública)",
+      "partido": null,
+      "fuente": "https://www.comunicacion.gob.ec",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Presidencia de Ecuador",
+      "page_id": "339660569555689",
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública)",
+      "partido": null,
+      "fuente": "https://www.presidencia.gob.ec",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Municipalidad de Francisco de Orellana",
+      "page_id": "2437081733186590",
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública)",
+      "partido": null,
+      "fuente": "https://orellana.gob.ec/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Municipalidad de Guayaquil",
+      "page_id": "44670244864",
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública)",
+      "partido": null,
+      "fuente": "https://www.guayaquil.gob.ec",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Prefectura del Azuay",
+      "page_id": "154182841282030",
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública)",
+      "partido": null,
+      "fuente": "https://www.azuay.gob.ec",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Biess",
+      "page_id": "103199639398861",
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública)",
+      "partido": null,
+      "fuente": "https://www.biess.fin.ec",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Municipio de Rumiñahui",
+      "page_id": "454565227983466",
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública)",
+      "partido": null,
+      "fuente": "https://www.ruminahui.gob.ec/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Prefectura de Los Ríos",
+      "page_id": "556613167733421",
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública)",
+      "partido": null,
+      "fuente": "https://losrios.gob.ec",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Circular EP",
+      "page_id": "419125331291914",
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública: empresa pública municipal de Guayaquil)",
+      "partido": null,
+      "fuente": "https://www.circularep.gob.ec",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Prefectura de Loja",
+      "page_id": "570261803087207",
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública)",
+      "partido": null,
+      "fuente": "https://prefecturaloja.gob.ec/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Alcaldía Camilo Ponce Enríquez",
+      "page_id": "117741637986435",
+      "otros_nombres": [
+        "GOBIERNO AUTONOMO DESCENTRALIZADO MUNICIPAL DEL CANTON CAMILO PONCE ENRIQUEZ"
+      ],
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública)",
+      "partido": null,
+      "fuente": "https://www.camiloponce.gob.ec/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Epmaps - Agua de Quito",
+      "page_id": "161326677278672",
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública)",
+      "partido": null,
+      "fuente": "https://www.aguaquito.gob.ec/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "BanEcuador",
+      "page_id": "857378244370245",
+      "tipo": "gobierno",
+      "afiliacion": "Sin afiliación (institución pública)",
+      "partido": null,
+      "fuente": "https://www.banecuador.fin.ec/nuestras-autoridades/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Altavoz Ec",
+      "page_id": "118089659584658",
+      "tipo": "medio",
+      "afiliacion": "MEDIO",
+      "partido": null,
+      "fuente": "https://altavoz.ec/about/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Datanews.ec",
+      "page_id": "120537226572",
+      "tipo": "medio",
+      "afiliacion": "MEDIO",
+      "partido": null,
+      "fuente": "https://datanews.ec",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Political MKT",
+      "page_id": "813263401867477",
+      "tipo": "agencia",
+      "afiliacion": "AGENCIA",
+      "partido": null,
+      "fuente": "https://politicalmkt.com/",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    },
+    {
+      "nombre": "Ecuador en acción",
+      "page_id": "821000127764158",
+      "tipo": "institucion",
+      "afiliacion": "Página centrada en promocionar candidatos y acciones de ADN",
+      "partido": "ADN",
+      "fuente": "https://www.facebook.com/profile.php?id=61582007035628#",
+      "verificado": true,
+      "actualizado": "2026-11-06"
+    }
+  ],
+  "_partidos": "Colores opcionales por partido (hex #rrggbb) para el grafo. La entrada con tipo «partido» es el centro del partido: se une a todos los demás nodos con el mismo `partido`. «Neutral» es un valor reservado (medios sin alineación partidista): gris por defecto (#94a3b8); aquí se puede cambiar su color."
+}

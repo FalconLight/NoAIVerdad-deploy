@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://apis.google.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' http://localhost:* http://127.0.0.1:* http://*:8000 https: wss:; frame-src 'self' http://localhost:* http://127.0.0.1:* https://*.firebaseapp.com https://accounts.google.com https://*.google.com https://*.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self' https:;">
+  <title>NoAIVerdad · Monitoreo electoral (Ecuador)</title>
+  <meta name="description" content="Herramienta cívica para consultar, por provincia, noticias, verificaciones, publicaciones en redes y anuncios políticos de Meta en Ecuador.">
+  <link rel="icon" type="image/png" href="img/LOGO_BLACK.png">
+
+  <!-- Aplica el tema antes de pintar para evitar parpadeos (archivo externo: lo exige el CSP) -->
+  <script src="js/theme-init.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="css/styles.css?v=12.0.0">
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <header class="topbar">
+    <div class="brand" id="brand" role="link" tabindex="0" aria-label="NoAIVerdad, ir al inicio">
+      <img id="brand-logo-img" src="img/LOGO_BLACK.png" alt="">
+      <span class="brand-name">NoAI<span>Verdad</span></span><span class="beta-tag" title="Versión beta: tus comentarios ayudan a mejorarla">BETA</span>
+    </div>
+
+    <nav class="nav" aria-label="Principal">
+      <button type="button" id="nav-resumen" data-vista="resumen">Conexiones</button>
+      <button type="button" id="nav-mapa" data-vista="mapa">Mapa</button>
+      <button type="button" id="nav-comparar" data-vista="comparar">Comparar</button>
+      <button type="button" id="nav-metodo" data-vista="metodo">Método</button>
+    </nav>
+
+    <div class="topbar-spacer"></div>
+    <button type="button" id="btn-ficha" class="icon-btn" aria-expanded="false" aria-controls="ficha" aria-label="Validar perfiles" title="Validar perfiles: ver y editar la afiliación de una entidad desde cualquier pestaña">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2"/><path d="m15 18 2.5 2.5L22 15.5"/></svg>
+    </button>
+    <button type="button" id="btn-tutorial" class="icon-btn" aria-label="Abrir el tutorial" title="Tutorial: cómo usar NoAIVerdad">?</button>
+    <button type="button" id="btn-fechas" class="switch fechas-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="fechas-panel" aria-label="Elegir fechas">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      <span class="switch-label" id="fechas-etiqueta">Fechas</span>
+    </button>
+    <button type="button" id="btn-sin-cne" class="switch" role="switch" aria-checked="false" aria-label="Ocultar anuncios del CNE" title="Quita de toda la web los anuncios del CNE (la autoridad electoral), que suelen encabezar el gasto">
+      <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+      <span class="switch-label"><span class="txt-largo">Ocultar CNE</span><span class="txt-corto">CNE</span></span>
+    </button>
+    <button type="button" id="btn-solo-activos" class="switch" role="switch" aria-checked="false" aria-label="Mostrar solo anuncios activos" title="Deja en toda la web solo los anuncios que siguen circulando (sin fecha de fin) y quita los que ya terminaron">
+      <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+      <span class="switch-label"><span class="txt-largo">Solo activos</span><span class="txt-corto">Activos</span></span>
+    </button>
+    <button type="button" id="btn-theme" class="icon-btn" aria-label="Cambiar tema">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <div id="auth-nav-container" class="auth-nav-container">
+      <button id="btn-nav-login" class="btn" type="button"><span class="txt-largo">Iniciar sesión</span><span class="txt-corto">Entrar</span></button>
+      <div id="user-profile-badge" class="user-profile-badge" style="display: none;">
+        <div class="user-avatar-circle" id="user-avatar-initials">U</div>
+        <span id="user-display-name" class="user-name-text">Usuario</span>
+        <button id="btn-nav-logout" class="btn-logout" type="button" title="Cerrar sesión">Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Ficha de entidad: flotante, visible en todas las pestañas; edita la misma entrada que Conexiones → Entidades -->
+  <section id="ficha" class="ficha" aria-label="Validar perfiles" hidden>
+    <header class="ficha-cab">
+      <strong id="ficha-titulo" class="ficha-titulo">Validar perfiles</strong>
+      <button type="button" class="icon-btn" id="ficha-min" aria-label="Minimizar" aria-expanded="true" title="Minimizar">–</button>
+      <button type="button" class="icon-btn" id="ficha-cerrar" aria-label="Cerrar" title="Cerrar (Esc)">✕</button>
+    </header>
+    <div class="ficha-cuerpo">
+      <div class="ficha-buscar">
+        <input type="search" id="ficha-buscar" placeholder="Buscar entidad por nombre, partido o id…" aria-label="Buscar entidad" autocomplete="off">
+        <ul id="ficha-resultados" class="ficha-resultados" role="listbox" aria-label="Entidades encontradas" hidden></ul>
+      </div>
+      <div id="ficha-form" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <main id="contenido">
+
+    <!-- ===== PROVINCIAS: mapa + panel ===== -->
+    <section id="view-mapa" class="view" aria-label="Provincias">
+      <div class="map-wrap">
+        <div id="map" role="region" aria-label="Mapa de provincias. También puedes elegir la provincia en la lista del panel."></div>
+
+
+      </div>
+
+      <aside class="panel" aria-label="Resultados de la provincia">
+        <div class="panel-head">
+          <div>
+            <label class="field-label" for="province-select">Provincia</label>
+            <select id="province-select"></select>
+          </div>
+
+          <h2 id="sidebar-title" class="visually-hidden">Selecciona una provincia</h2>
+
+          <div class="chips" id="source-chips" role="group" aria-label="Fuente">
+            <button type="button" class="chip" data-seccion="noticias" aria-pressed="true"><span class="dot" style="background:var(--src-prensa)"></span>Prensa</button>
+            <button type="button" class="chip" data-seccion="prensa_local" aria-pressed="false"><span class="dot" style="background:var(--accent)"></span>Prensa local</button>
+            <button type="button" class="chip" data-seccion="verificaciones" aria-pressed="false"><span class="dot" style="background:var(--src-fact)"></span>Verificaciones</button>
+            <button type="button" class="chip" data-seccion="bluesky" aria-pressed="false"><span class="dot" style="background:var(--src-bluesky)"></span>Bluesky</button>
+            <button type="button" class="chip" data-seccion="youtube" aria-pressed="false"><span class="dot" style="background:var(--src-youtube)"></span>YouTube</button>
+            <button type="button" class="chip" data-seccion="reddit" aria-pressed="false"><span class="dot" style="background:var(--src-reddit)"></span>Reddit</button>
+            <button type="button" class="chip" data-seccion="tweets" aria-pressed="false"><span class="dot" style="background:var(--src-x)"></span>X <span class="soon">pronto</span></button>
+          </div>
+
+          <div class="panel-row">
+          <div class="panel-links" id="panel-actions" hidden>
+            <button type="button" class="btn btn-ghost" id="go-resumen">Conexiones</button>
+            <button type="button" class="btn btn-ghost" id="go-comparar">Comparar</button>
+          </div>
+          <div class="panel-filter">
+            <label for="filter-period">Período</label>
+            <select id="filter-period">
+              <option value="todo">Todo el período</option>
+              <option value="7">Últimos 7 días</option>
+              <option value="30">Últimos 30 días</option>
+              <option value="90">Últimos 90 días</option>
+              <option value="365">Último año</option>
+            </select>
+          </div>
+          </div>
+        </div>
+
+        <div id="sidebar-content" class="panel-body" aria-live="polite"></div>
+      </aside>
+    </section>
+
+    <!-- ===== RESUMEN ===== -->
+    <section id="view-resumen" class="view view-page rs active" aria-label="Conexiones" aria-busy="false">
+      <div id="resumen-progress" class="progress" aria-hidden="true"></div>
+
+      <!-- Escenario: la red ocupa toda la pantalla; todo lo demás se desliza desde los lados -->
+      <div class="rs-stage" id="rs-stage">
+        <div id="red-lienzo" class="rs-lienzo" aria-live="polite"><div class="state" role="status"><div class="spinner" aria-hidden="true"></div><div class="state-title">Armando la red de pagadores...</div></div></div>
+
+        <div class="rs-barra" id="resumen-tabs" role="toolbar" aria-label="Secciones de Conexiones">
+          <select id="resumen-alcance" class="rs-select" aria-label="Alcance"></select>
+          <button type="button" class="rs-btn" id="rs-btn-filtros" aria-expanded="false" aria-controls="rs-izq">Filtros</button>
+          <button type="button" class="rs-btn" id="tabbtn-mensajes" data-tab="mensajes" aria-pressed="false" aria-controls="rs-der">Mensajes repetidos</button>
+          <button type="button" class="rs-btn" id="tabbtn-entidades" data-tab="entidades" aria-pressed="false" aria-controls="rs-der">Entidades</button>
+          <button type="button" class="rs-btn" id="tabbtn-termino" data-tab="termino" aria-pressed="false" aria-controls="rs-der">Buscar</button>
+          <button type="button" class="rs-btn" id="tabbtn-info" data-tab="info" aria-pressed="false" aria-controls="rs-der" title="Fuente y método">ⓘ</button>
+          <button type="button" class="rs-btn rs-btn-resumen" id="rs-btn-resumen" aria-expanded="false" aria-controls="rs-flot">Resumen</button>
+        </div>
+      </div>
+
+      <!-- Panel izquierdo: filtros del gráfico -->
+      <aside id="rs-izq" class="rs-panel rs-izq" aria-label="Filtros del gráfico" aria-hidden="true" inert>
+        <header class="rs-panel-cab"><h2>Filtros</h2><button type="button" class="icon-btn" id="rs-izq-cerrar" aria-label="Cerrar filtros">✕</button></header>
+        <div class="rs-panel-cuerpo">
+          <div id="rs-filtros-cuerpo">Cargando…</div>
+          <div id="red-kpis" hidden></div>
+          <div id="red-lista" aria-live="polite" style="margin-top:6px"></div>
+          <p id="red-nota" class="xsmall muted" style="margin-top:10px"></p>
+        </div>
+      </aside>
+
+      <!-- Panel derecho: detalle de un nodo y el resto de secciones -->
+      <aside id="rs-der" class="rs-panel rs-der" aria-labelledby="rs-der-titulo" aria-hidden="true" inert>
+        <!-- Asa para cambiar el tamaño del panel: en pantallas anchas su ancho (borde izquierdo); en móviles, donde es una hoja que sube desde abajo, su alto (borde superior) -->
+        <div id="rs-der-asa" class="rs-asa" role="separator" aria-orientation="vertical" aria-label="Ajustar el tamaño del panel" aria-valuemin="300" aria-valuemax="900" aria-valuenow="580" tabindex="0" title="Arrastra para cambiar el tamaño del panel (doble clic: tamaño original)"></div>
+        <header class="rs-panel-cab"><h2 id="rs-der-titulo">Detalle</h2><button type="button" class="icon-btn" id="rs-der-cerrar" aria-label="Cerrar panel">✕</button></header>
+        <div class="rs-panel-cuerpo">
+          <div id="tab-detalle" hidden><div id="red-detalle" aria-live="polite" style="font-size:14px"></div></div>
+        <!-- Mensajes repetidos -->
+        <div id="tab-mensajes" class="tabpanel" role="tabpanel" aria-labelledby="tabbtn-mensajes" hidden>
+          <p class="lead small" style="margin-bottom:14px">Anuncios con texto casi idéntico (≥ 80 % de similitud, sin contar enlaces, hashtags ni menciones) publicados por páginas distintas. Una plantilla donde solo cambia un nombre o una cifra no cuenta. Es un indicador para investigar, no una prueba: partidos, candidatos, agencias y gobiernos también reutilizan mensajes, y dos páginas de una misma persona u organización cuentan como distintas hasta que las unas en Entidades. Un grupo esperable se marca como <strong>revisado</strong> y deja de contarse como señal (y de dibujarse en la red); «Mostrar revisados» lo vuelve a mostrar. En la red, pulsa una línea gris punteada para leer los mensajes que une: cada uno muestra sus dos anuncios lado a lado, con el enlace de cada uno a la Biblioteca de Meta.</p>
+          <div class="toolbar">
+            <label class="chip" style="cursor:pointer"><input type="checkbox" id="mensajes-solo-distintos" style="width:auto;min-height:0"> Solo con pagadores declarados distintos</label>
+            <label class="chip" style="cursor:pointer"><input type="checkbox" id="mensajes-sin-aisladas" style="width:auto;min-height:0"> Ocultar coincidencias aisladas</label>
+            <label class="chip" id="mensajes-revisados-caja" style="cursor:pointer" hidden><input type="checkbox" id="mensajes-ver-revisados" style="width:auto;min-height:0"> Mostrar revisados (<span id="mensajes-n-revisados">0</span>)</label>
+          </div>
+          <div id="mensajes-lista" aria-live="polite">Cargando análisis...</div>
+          <p id="mensajes-nota" class="xsmall muted" style="margin-top:12px"></p>
+        </div>
+
+        <!-- Entidades: afiliación política editable -->
+        <div id="tab-entidades" class="tabpanel" role="tabpanel" aria-labelledby="tabbtn-entidades" hidden>
+          <p class="lead small" style="margin-bottom:10px">Personas, partidos, medios y otras entidades que aparecen como páginas o pagadores. Edita su afiliación política y pulsa «Guardar»: el cambio se escribe en <code>backend/afiliaciones.json</code> y se refleja en todo el sitio. Si dos entradas son la misma persona (otra página, o el pagador con otro nombre), márcalas con su casilla o con <strong>Shift + clic</strong> en el nombre y pulsa «Unificar». Un medio que informa sin alinearse con un partido se marca con el partido «Neutral».</p>
+          <div id="entidades-lista" aria-live="polite">Cargando…</div>
+        </div>
+
+
+        <!-- Buscar un término -->
+        <div id="tab-termino" class="tabpanel" role="tabpanel" aria-labelledby="tabbtn-termino" hidden>
+          <p class="lead small" style="margin-bottom:14px">Cuenta coincidencias reales del término en titulares de prensa, verificaciones y texto de anuncios de Meta. El número no mide popularidad.</p>
+          <div class="toolbar">
+            <div class="grow">
+              <label class="visually-hidden" for="termino-input">Término a buscar</label>
+              <input type="search" id="termino-input" placeholder="Un candidato, institución o tema (ej.: CNE, seguridad)" autocomplete="off">
+            </div>
+            <button type="button" class="btn btn-primary" id="termino-buscar">Buscar</button>
+          </div>
+          <div>
+            <span class="xsmall muted">Palabras que se repiten en los titulares de hoy:</span>
+            <div id="termino-sugerencias" class="pill-list"></div>
+          </div>
+          <div id="termino-resultado" class="result-box" hidden aria-live="polite"></div>
+        </div>
+          <div id="tab-info" class="tabpanel" role="tabpanel" aria-labelledby="tabbtn-info" hidden>
+            <p class="source-line" style="margin-top:0"><span id="resumen-fuente">Cargando información de la fuente...</span></p>
+            <details class="method-detail" open>
+              <summary>Cómo se calcula</summary>
+              <p id="resumen-metodo">Meta publica la inversión y las impresiones de cada anuncio como rangos. La «inversión estimada» es el punto medio de cada rango. Para una provincia cuentan los anuncios que llegan allí (al menos el 5 % de su alcance), cada uno en proporción a su porcentaje: es una estimación, no un dato reportado.</p>
+            </details>
+            <details class="method-detail" open>
+              <summary>Cómo leer el gráfico</summary>
+              <ul class="small">
+                <li><strong>Tamaño:</strong> inversión estimada de cada nodo.</li>
+                <li><strong>Anillo:</strong> la afiliación política está verificada con una fuente.</li>
+                <li><strong>Órbita:</strong> la página pertenece a esa provincia.</li>
+                <li><strong>Qué se dibuja según el zoom:</strong> con todo el país a la vista solo se dibujan las páginas de mayor inversión de cada provincia (en las pequeñas, todas) y las que tienen conexiones o afiliación. Al acercar el zoom aparecen más, de mayor a menor inversión, hasta ser todas; también aparecen las que rodean al cursor, las que busques y todas las de la provincia que selecciones. La leyenda indica cuántos nodos se dibujan («X de N»).</li>
+                <li><strong>Provincia:</strong> el nodo central de cada sistema; sobre el mapa se ubica en la capital (una línea punteada la une a ella si se movió para no solaparse).</li>
+              </ul>
+            </details>
+            <p class="lead small" style="margin-top:12px">En el gráfico, las páginas se unen a la provincia donde llegan más, y entre sí cuando comparten pagador, texto casi idéntico, enlace o partido. Es una pista para investigar, no una prueba.</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Ventana flotante «Resumen»: totales y lista de anunciantes. Se mueve arrastrando su cabecera y puede estar abierta a la vez que el panel derecho -->
+      <section id="rs-flot" class="rs-flot" role="dialog" aria-modal="false" aria-labelledby="rs-flot-titulo" hidden>
+        <header class="rs-flot-cab" id="rs-flot-cab" title="Arrastra para mover la ventana (doble clic: posición original)"><h2 id="rs-flot-titulo">Resumen</h2><button type="button" class="icon-btn" id="rs-flot-cerrar" aria-label="Cerrar resumen">✕</button></header>
+        <div class="rs-flot-cuerpo">
+            <div id="tab-anunciantes">
+              <div id="resumen-kpis" class="kpis" aria-live="polite"></div>
+              <p id="resumen-lead" class="lead small"></p>
+              <div class="source-line" style="margin:0 0 10px">
+                <button type="button" class="btn" id="btn-copiar-cita">Copiar cita</button>
+                <button type="button" class="btn" id="btn-csv">Descargar CSV</button>
+                <span id="resumen-aviso" class="xsmall muted" role="status" aria-live="polite"></span>
+              </div>
+              <div class="toolbar">
+                <div class="grow">
+                  <label class="visually-hidden" for="anunciantes-buscar">Buscar anunciante o pagador</label>
+                  <input type="search" id="anunciantes-buscar" placeholder="Buscar anunciante o pagador" autocomplete="off">
+                </div>
+                <div>
+                  <label class="visually-hidden" for="anunciantes-orden">Ordenar por</label>
+                  <select id="anunciantes-orden">
+                    <option value="gasto">Mayor inversión estimada</option>
+                    <option value="impresiones">Más impresiones</option>
+                    <option value="anuncios">Más anuncios</option>
+                    <option value="nombre">Nombre (A–Z)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="visually-hidden" for="anunciantes-tipo">Tipo de anunciante</label>
+                  <select id="anunciantes-tipo" title="Solo se puede filtrar por tipo lo que está clasificado en Entidades; el resto va en «Sin clasificar»"></select>
+                </div>
+                <label class="check-inline xsmall" id="anunciantes-base-wrap" hidden><input type="checkbox" id="anunciantes-base"> Solo páginas con base aquí</label>
+                <span class="count" id="anunciantes-conteo" aria-live="polite"></span>
+              </div>
+              <div id="anunciantes-tabla" aria-live="polite">Cargando anunciantes...</div>
+              <div id="anunciantes-redes"></div>
+              <p id="anunciantes-nota" class="xsmall muted" style="margin-top:12px"></p>
+            </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ===== COMPARAR ===== -->
+    <section id="view-comparar" class="view view-page" aria-label="Comparar" aria-busy="false">
+      <div id="comparar-progress" class="progress" aria-hidden="true"></div>
+      <div class="page">
+        <header class="page-head">
+          <div>
+            <h1>Comparar</h1>
+            <p class="lead">Compara los anuncios políticos de Meta entre dos o tres provincias, o contra el total nacional.</p>
+          </div>
+        </header>
+        <div class="picker-row" id="comparar-selectores"></div>
+        <div id="comparar-resultado" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ===== MÉTODO ===== -->
+    <section id="view-acerca" class="view view-page" aria-label="Método y fuentes">
+      <div class="page">
+        <header class="page-head">
+          <div>
+            <h1>Método y fuentes</h1>
+            <p class="lead">NoAIVerdad es una herramienta cívica de código abierto para consultar, por provincia, lo que publica la prensa, lo que han verificado los fact-checkers, lo que se dice en redes y quién paga anuncios políticos en Meta. Aquí explicamos de dónde sale cada dato y qué límites tiene.</p>
+          </div>
+        </header>
+
+        <div class="prose">
+          <h2>Calendario electoral</h2>
+          <p>Las elecciones seccionales figuraban en el calendario oficial para febrero de 2027 y se adelantaron al <strong>29 de noviembre de 2026</strong>. Confirma siempre las fechas vigentes en el sitio del CNE (<a href="https://www.cne.gob.ec" target="_blank" rel="noopener noreferrer">cne.gob.ec</a>).</p>
+
+          <h2>Qué es y qué no es</h2>
+          <p>Es un punto de partida para preguntarse si una narrativa circula de forma orgánica o con dinero detrás. Muestra datos e <strong>indicadores</strong>; la conclusión la saca una persona. No usamos IA generativa para escribir ni reescribir lo que ves: titulares, textos de anuncios y publicaciones se muestran como los entrega cada fuente. Las cifras derivadas (inversión estimada, porcentajes) son cálculos de la plataforma y se explican donde aparecen.</p>
+
+          <h2>Cómo leer los indicadores</h2>
+          <ul>
+            <li><strong>Rangos, no cifras.</strong> Meta publica la inversión y las impresiones de cada anuncio como rangos (p. ej. USD 100–199). La «inversión estimada» es el punto medio; la suma total tiene incertidumbre.</li>
+            <li><strong>Estimaciones por provincia.</strong> Meta indica qué porcentaje del alcance de cada anuncio fue en cada provincia. Para una provincia, la inversión se reparte según ese porcentaje.</li>
+            <li><strong>«Llegan a» una provincia y «con base en» una provincia.</strong> Un anuncio <em>llega a</em> una provincia si al menos el 5 % de su alcance fue allí: eso es lo que cuentan los totales de Conexiones y la comparación, con la inversión repartida según ese porcentaje. Una página tiene <em>base en</em> la provincia donde llega más: eso es lo que agrupa cada sol de la red, y sus listas muestran el precio completo de cada anuncio. Las dos cuentas son correctas y responden preguntas distintas, por eso el detalle de un sol muestra ambas.</li>
+            <li><strong>Indicadores, no pruebas.</strong> «Mensajes repetidos», «alcance concentrado» o «pagador distinto de la página» son señales para investigar. Pueden tener explicaciones legítimas y no acusan a nadie.</li>
+            <li><strong>Cómo se comparan los mensajes repetidos.</strong> Se comparan los textos de los anuncios sin enlaces, hashtags ni menciones, y cuentan los que coinciden al menos en un 80 % entre páginas distintas. Quedan fuera los textos de menos de 8 palabras, los avisos estándar de Meta y las plantillas donde solo cambia un nombre o una cifra (otro nombre u otra cifra es otro mensaje). Que dos páginas repitan un mensaje no prueba coordinación: puede tratarse de una misma persona u organización (se unen en Entidades), de un partido y sus candidatos o de un gobierno y los medios que lo difunden. Cuantas más veces coinciden las mismas páginas, más pesa el patrón; una coincidencia aislada puede ser casual. Quien revisa un grupo lo marca como esperable con su motivo y su nota (se guarda en <code>backend/mensajes_revisados.json</code>): deja de contarse como señal, y si después se suma una página que no se había visto, vuelve a mostrarse.</li>
+            <li><strong>Alcance nacional vs. provincial.</strong> Si una fuente no tiene resultados de la provincia, se muestran resultados nacionales y la vista lo indica.</li>
+            <li><strong>Anuncios retirados por Meta.</strong> Cuando Meta retira un anuncio (por no llevar el descargo de responsabilidad «pagado por» obligatorio, por incumplir sus normas publicitarias o porque la cuenta o página que lo publicó fue inhabilitada), solo deja un aviso en su lugar: el mismo texto en miles de páginas, sin mensaje real. Esos anuncios <strong>no se cuentan</strong>: no aparecen en el mapa, la red, las listas ni las cifras, y las páginas que solo tenían avisos de este tipo tampoco. La fuente de datos indica cuántos se dejaron fuera.</li>
+            <li><strong>«Política» es una categoría amplia.</strong> Incluye gobiernos, medios, candidatos y también empresas. Revisa quién paga y qué dice el anuncio.</li>
+            <li><strong>Puntos del mapa.</strong> Se ubican en un punto de cada provincia (no en sus límites); sirven para elegir la provincia cuyas noticias, verificaciones y publicaciones quieres ver.</li>
+          </ul>
+
+          <h2>Frescura de los datos</h2>
+          <p>Los datos se consultan a las fuentes al abrir cada vista y se guardan en caché: anuncios de Meta 30 minutos, prensa, verificaciones y Bluesky 10 minutos. Si el servidor tiene el colector activo, además guarda una copia de las 24 provincias en Firebase cada 6 horas; la app la usa cuando una consulta en vivo no devuelve resultados y lo indica. Conexiones indica cuándo se actualizaron los anuncios.</p>
+
+          <h2>Fuentes</h2>
+          <details>
+            <summary>Anuncios políticos de Meta (Biblioteca de Anuncios)</summary>
+            <p>Anuncios que Meta clasifica como políticos o de temas sociales y que llegaron a Ecuador, con el pagador que declaró el anunciante, rangos de inversión e impresiones y alcance por región. <strong>Límite:</strong> solo incluye lo que Meta clasifica y publica; no cubre publicidad no declarada ni otras plataformas (Google y X no publican datos equivalentes para Ecuador). <strong>Cobertura:</strong> se descargan todos los anuncios que la API de Meta devuelve para Ecuador en el período que indica Conexiones (no una muestra elegida por palabras) y se renuevan como mucho cada hora; ahí también aparece la fecha de la última actualización.</p>
+          </details>
+          <details>
+            <summary>Noticias de prensa (GNews, Google News y CNE)</summary>
+            <p>Titulares agregados por GNews y Google News (búsquedas por la provincia y sus principales ciudades) y las publicaciones oficiales del CNE, ordenados por fecha, con enlace al artículo original. <strong>Límite:</strong> los agregadores pueden incluir medios de distinta calidad editorial; no filtramos por medio. Un titular no es una verificación.</p>
+          </details>
+          <details>
+            <summary>Prensa local (medios de cada provincia)</summary>
+            <p>Notas electorales de los últimos 90 días de los medios locales registrados para la provincia (lista en <code>backend/medios_locales.json</code>), leídas de su canal RSS y de Google News restringido a su sitio. Un filtro por palabras electorales y por lugares deja fuera lo que no trata de la provincia ni de las elecciones; puede quedar alguna nota ajena o faltar alguna relevante. <strong>Límite:</strong> solo hay medios para algunas provincias (donde se comprobó que su sitio devuelve notas reales); no se leen medios sin sitio web ni lo que se publica solo en redes sociales.</p>
+          </details>
+          <details>
+            <summary>Verificaciones (Google Fact Check Tools)</summary>
+            <p>Revisiones publicadas por organizaciones de verificación. Cada tarjeta muestra la <strong>calificación del propio verificador</strong>, su nombre y la fecha, con enlace a la revisión. <strong>Límite:</strong> la cobertura de temas locales puede ser escasa. Que algo aparezca aquí significa que fue revisado, no que sea falso.</p>
+          </details>
+          <details>
+            <summary>YouTube (canales ecuatorianos)</summary>
+            <p>Videos recientes de canales de noticias ecuatorianos (Ecuavisa, Teleamazonas, Primicias, TC Televisión y Ecuador TV), tomados de sus feeds RSS públicos. <strong>Límite:</strong> son canales nacionales; no se filtran por provincia ni se analizan los comentarios.</p>
+          </details>
+          <details>
+            <summary>Reddit (búsqueda pública)</summary>
+            <p>Conversaciones públicas de Reddit sobre política y elecciones que mencionan la provincia o sus ciudades, mediante los feeds RSS públicos de búsqueda. Se consulta bajo demanda. <strong>Límite:</strong> Reddit tiene poca presencia ecuatoriana; no representa a la población.</p>
+          </details>
+          <details>
+            <summary>Bluesky (búsqueda pública)</summary>
+            <p>Publicaciones públicas de Bluesky que mencionan la provincia. <strong>Límite:</strong> la comunidad ecuatoriana en Bluesky es pequeña; una muestra de publicaciones no representa a la población.</p>
+          </details>
+          <details>
+            <summary>X (próximamente)</summary>
+            <p>La integración con la API oficial de X está construida, pero desactivada: la API es de pago por uso y por ahora no hay financiamiento. Se activará si se consigue. Hasta entonces la sección lo indica y no muestra contenido.</p>
+          </details>
+          <details>
+            <summary>Tecnologías</summary>
+            <p>OpenStreetMap y Leaflet (mapa), FastAPI y Python (backend). Código abierto.</p>
+          </details>
+
+          <h2>Cómo usar la plataforma</h2>
+          <ul>
+            <li>En <strong>Conexiones</strong>, revisa los mayores anunciantes (se puede buscar y ordenar), los mensajes repetidos y el alcance por provincia. Puedes copiar una cita con la fuente y la fecha, o descargar un CSV.</li>
+            <li>En <strong>Mapa</strong>, elige una provincia en el mapa o en la lista, luego una fuente (prensa, prensa local, verificaciones, redes) y, si quieres, un período. Los anuncios se consultan en Conexiones.</li>
+            <li>Los interruptores de arriba filtran todo el sitio: <strong>Ocultar CNE</strong> quita los anuncios de la autoridad electoral y <strong>Solo activos</strong> deja únicamente los anuncios que siguen circulando. Cada lista de anuncios tiene <strong>Descargar CSV</strong> y, en cada anuncio, <strong>Descargar este anuncio</strong>; las listas de varias páginas se pueden filtrar por <strong>tipo de anunciante</strong>.</li>
+            <li>En <strong>Comparar</strong>, enfrenta dos o tres provincias, o una provincia contra el total nacional.</li>
+            <li>La dirección del navegador guarda la vista, la provincia y los filtros: puedes copiarla y compartirla.</li>
+          </ul>
+          <p class="notice callout">Un indicador es un punto de partida para investigar, no una conclusión. Revisa siempre el anuncio y la fuente original antes de publicar.</p>
+
+          <h2>Cuenta y acceso</h2>
+          <p>Esta instalación puede pedir crear una cuenta o iniciar sesión (correo y contraseña, o Google) mediante Firebase. La cuenta solo guarda tu correo, nombre y fecha de acceso. El acceso se puede configurar como obligatorio u opcional en <code>frontend/js/app-config.js</code>.</p>
+
+          <h2>Independencia</h2>
+          <p>NoAIVerdad es una herramienta de monitoreo cívico independiente. No está afiliada al CNE, a ningún partido político ni candidato. Los contenidos provienen de fuentes públicas y son responsabilidad de sus autores originales; la plataforma no valida su veracidad.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================================================
+       MODAL DE AUTENTICACIÓN INMEDIATO (APARTADO DE CREAR CUENTA O INICIAR SESIÓN)
+       ========================================================================== -->
+  <div id="modal-auth-overlay" class="auth-modal-overlay active">
+    <div class="auth-modal-card">
+      <button type="button" id="modal-auth-close" class="auth-modal-close" aria-label="Cerrar" hidden>&times;</button>
+      <div class="auth-modal-header">
+        <img id="auth-modal-logo-img" src="img/LOGO_WHITE.png" alt="" class="auth-modal-logo" />
+        <h2 class="auth-modal-title">NoAI<span>Verdad</span></h2>
+        <p class="auth-modal-subtitle">Monitoreo Electoral e Inteligencia Cívica · Ecuador</p>
+      </div>
+
+      <!-- Switch de Pestañas: Crear Cuenta vs Iniciar Sesión -->
+      <div class="auth-modal-tabs">
+        <button id="modal-tab-register" class="auth-modal-tab-btn active" type="button">Crear Cuenta</button>
+        <button id="modal-tab-login" class="auth-modal-tab-btn" type="button">Iniciar Sesión</button>
+      </div>
+
+      <!-- Alerta de Feedback -->
+      <div id="modal-auth-alert" class="auth-modal-alert"></div>
+
+      <!-- FORMULARIO: CREAR CUENTA (REGISTRO) -->
+      <form id="modal-form-register">
+        <div class="auth-modal-form-group">
+          <label for="modal-reg-name" class="auth-modal-label">Nombre Completo o Alias</label>
+          <input type="text" id="modal-reg-name" class="auth-modal-input" placeholder="Ej. Juan Pérez" required autocomplete="name" />
+        </div>
+
+        <div class="auth-modal-form-group">
+          <label for="modal-reg-email" class="auth-modal-label">Correo Electrónico</label>
+          <input type="email" id="modal-reg-email" class="auth-modal-input" placeholder="ejemplo@correo.com" required autocomplete="email" />
+        </div>
+
+        <div class="auth-modal-form-group">
+          <label for="modal-reg-password" class="auth-modal-label">Contraseña (Mínimo 6 caracteres)</label>
+          <input type="password" id="modal-reg-password" class="auth-modal-input" placeholder="••••••••" required minlength="6" autocomplete="new-password" />
+        </div>
+
+        <div class="auth-modal-form-group">
+          <label for="modal-reg-password-confirm" class="auth-modal-label">Confirmar Contraseña</label>
+          <input type="password" id="modal-reg-password-confirm" class="auth-modal-input" placeholder="••••••••" required minlength="6" autocomplete="new-password" />
+        </div>
+
+        <button type="submit" id="modal-btn-submit-reg" class="auth-modal-btn-primary">
+          <span>Crear Cuenta Ciudadana</span>
+        </button>
+      </form>
+
+      <!-- FORMULARIO: INICIAR SESIÓN (LOGIN) -->
+      <form id="modal-form-login" style="display: none;">
+        <div class="auth-modal-form-group">
+          <label for="modal-login-email" class="auth-modal-label">Correo Electrónico</label>
+          <input type="email" id="modal-login-email" class="auth-modal-input" placeholder="ejemplo@correo.com" required autocomplete="email" />
+        </div>
+
+        <div class="auth-modal-form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <label for="modal-login-password" class="auth-modal-label" style="margin: 0;">Contraseña</label>
+            <a href="#" id="modal-link-forgot-pass" class="auth-modal-forgot-link">¿Olvidaste tu contraseña?</a>
+          </div>
+          <input type="password" id="modal-login-password" class="auth-modal-input" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+
+        <button type="submit" id="modal-btn-submit-login" class="auth-modal-btn-primary">
+          <span>Ingresar a NoAIVerdad</span>
+        </button>
+      </form>
+
+      <!-- Separador -->
+      <div class="auth-modal-divider">
+        <span>o continúa con</span>
+      </div>
+
+      <!-- Botón de Google Sign-In -->
+      <button type="button" id="modal-btn-google" class="auth-modal-btn-google">
+        <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span>Continuar con Google</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Configuración de acceso, SDK de Firebase (Auth + Realtime Database) y sincronización -->
+  <script src="js/despliegue-config.js"></script>
+  <script src="js/app-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-sync.js"></script>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Tutorial para usuarios nuevos (se abre solo la primera vez; botón «?» de la barra superior) -->
+  <div id="tutorial-overlay" class="tuto-overlay" hidden>
+    <div class="tuto" role="dialog" aria-modal="true" aria-labelledby="tuto-titulo">
+      <button type="button" class="icon-btn tuto-cerrar" id="tuto-cerrar" aria-label="Cerrar el tutorial">✕</button>
+      <div class="xsmall muted" id="tuto-num" style="font-family:var(--font-mono)"></div>
+      <h2 id="tuto-titulo"></h2>
+      <div id="tuto-cuerpo" class="tuto-cuerpo"></div>
+      <div class="tuto-pie">
+        <label class="chip" style="cursor:pointer"><input type="checkbox" id="tuto-no-mostrar" style="width:auto;min-height:0"> No volver a mostrar al iniciar</label>
+        <div class="tuto-nav">
+          <button type="button" class="btn" id="tuto-atras">Atrás</button>
+          <div id="tuto-puntos" class="tuto-puntos" aria-hidden="true"></div>
+          <button type="button" class="btn btn-primary" id="tuto-sig">Siguiente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/red-orbital.js?v=21"></script>
+  <script src="js/app.js?v=12.0.0"></script>
+  <script src="js/demo.js?v=5"></script>
+</body>
+</html>
