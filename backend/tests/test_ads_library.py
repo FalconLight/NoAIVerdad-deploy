@@ -1077,5 +1077,47 @@ class DescargaCompletaTests(unittest.TestCase):
         self.assertTrue(estado["desactualizado"])
 
 
+class EnlacesParTests(unittest.TestCase):
+    """Una línea «mismo enlace» de la red se abre con los anuncios de sus dos páginas que llevan ese enlace, como los mensajes repetidos."""
+
+    def _cliente_con(self, anuncios):
+        cliente = _cliente()
+        parche = mock.patch.object(ads_library.requests, "get", return_value=_respuesta(200, {"data": anuncios}))
+        parche.start()
+        self.addCleanup(parche.stop)
+        return cliente
+
+    def _ad(self, ad_id, pagina, texto):
+        return _anuncio(ad_id, [("Azuay", "1.0")], page_name=pagina, page_id=str(abs(hash(pagina)) % 10**9), ad_creative_bodies=[texto])
+
+    def test_trae_los_anuncios_de_cada_pagina_por_enlace_con_la_regla_de_la_red(self):
+        cliente = self._cliente_con([
+            self._ad("1", "A", "Inscríbete en https://portal.ejemplo.ec/curso-uno hoy"),
+            self._ad("2", "B", "Más información: https://portal.ejemplo.ec/otra-pagina"),
+            self._ad("3", "A", "Mira el vídeo https://www.youtube.com/watch?v=AAA&si=x"),
+            self._ad("4", "B", "El mismo vídeo https://youtube.com/watch?v=AAA"),
+            self._ad("5", "B", "Otro vídeo https://www.youtube.com/watch?v=BBB"),
+            self._ad("6", "A", "Solo de A https://solo-a.ec/"),
+            self._ad("7", "C", "Un tercero https://portal.ejemplo.ec/"),
+        ])
+        r = cliente.enlaces_par("A", "B")
+        grupos = {g["clave"]: g for g in r["grupos"]}
+        self.assertEqual(set(grupos), {"portal.ejemplo.ec", "youtube.com/watch?v=AAA"})       # ni el vídeo BBB ni el enlace que solo usa A
+        dominio, video = grupos["portal.ejemplo.ec"], grupos["youtube.com/watch?v=AAA"]
+        self.assertTrue(dominio["por_dominio"] and not video["por_dominio"])
+        self.assertEqual((dominio["n_urls"], dominio["otras_paginas"], dominio["n_paginas"]), (2, ["C"], 3))
+        self.assertEqual(sorted(a["id"] for a in dominio["detalle"]["anuncios"]), ["1", "2"])   # solo los anuncios de las dos páginas
+        self.assertEqual(sorted(a["id"] for a in video["detalle"]["anuncios"]), ["3", "4"])
+        for a in video["detalle"]["anuncios"]:
+            self.assertEqual(a["link"], f"https://www.facebook.com/ads/library/?id={a['id']}")
+            self.assertIn("youtube.com/watch?v=AAA", video["detalle"]["textos"][a["t"]])
+        # coincide con las líneas de la red
+        en_red = {d for e in cliente.red_pagadores(None, limite=10)["grafo"]["aristas"] if e["tipo"] == "enlace" and {e["a"], e["b"]} == {"G:A", "G:B"}
+                  for d in e["detalles"]}
+        self.assertEqual(en_red, set(grupos))
+        self.assertEqual(cliente.enlaces_par("A", "Z")["grupos"], [])
+        self.assertEqual(cliente.enlaces_par("A", "B", max_paginas_enlace=2)["grupos"][0]["clave"], "youtube.com/watch?v=AAA")   # el tope de páginas de la red
+
+
 if __name__ == "__main__":
     unittest.main()

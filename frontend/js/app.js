@@ -1505,18 +1505,76 @@ function mostrarDetallePartido(e) {
   abrirDerecho("detalle");
 }
 
-/** Detalle de una línea de «mismo enlace» de la red: el enlace (o enlaces) que comparten sus dos páginas y entre qué fechas. */
-function mostrarDetalleEnlace(e) {
-  pedidoTextoDeLinea++;                         // si había una comparación de textos cargándose, ya no debe pintarse
-  const urls = e.detalles || [];
-  const fechas = e.primero ? ` · del ${escaparHtml(formatearFechaSafe(e.primero))} al ${escaparHtml(formatearFechaSafe(e.ultimo || e.primero))}` : "";
-  $("red-detalle").innerHTML = `
-    <div><strong>Mismo enlace</strong> · ${escaparHtml(e.a.nombre)} ↔ ${escaparHtml(e.b.nombre)}</div>
-    <div class="muted" style="margin:4px 0 10px">${fmtNum(urls.length)} ${urls.length === 1 ? "enlace compartido" : "enlaces compartidos"} en sus anuncios${fechas}</div>
-    ${urls.map((u) => `<div style="margin:6px 0;overflow-wrap:anywhere">· <code>${escaparHtml(u)}</code></div>`).join("")}
-    ${htmlGrupoDeLinea(e, "Aparece")}
-    <p class="xsmall muted" style="margin-top:12px">Un indicador, no una prueba: dos páginas pueden enlazar al mismo sitio por pertenecer a la misma organización o campaña, o por compartir una noticia o un formulario público.</p>`;
+/** El texto de un anuncio con el enlace compartido resaltado (el mismo enlace exacto, o cualquiera del dominio si se compara por dominio). */
+function resaltarEnlace(texto, g) {
+  const dominio = g.por_dominio ? g.clave : "", urls = new Set(g.urls || []);
+  return String(texto || "").split(/(https?:\/\/[^\s)\]>"']+)/i).map((t, k) => {
+    if (k % 2 === 0) return escaparHtml(t);
+    const limpia = t.replace(/[.,;:!?]+$/, ""), host = (limpia.match(/^https?:\/\/(?:www\.)?([^/?#]+)/i) || [])[1] || "";
+    const es = urls.has(limpia) || (dominio && host.toLowerCase() === dominio) || (!dominio && limpia.toLowerCase().includes(g.clave.split("?")[0].toLowerCase()));
+    return es ? `<mark class="dif">${escaparHtml(t)}</mark>` : escaparHtml(t);
+  }).join("");
+}
+
+/** Un enlace compartido entre las páginas `a` y `b`: sus dos anuncios publicados más cerca en el tiempo, lado a lado, y el resto con su enlace. */
+function htmlEnlacePar(g, i, total, a, b) {
+  const det = g.detalle, par = parMasCercano(det.anuncios, a, b);
+  const afil = (nombre) => (g.paginas.find((p) => p.page_name === nombre) || {}).afiliacion || null;
+  const como = g.por_dominio ? (g.n_urls > 1 ? `mismo sitio · ${fmtNum(g.n_urls)} direcciones distintas` : "mismo sitio") : "la misma dirección";
+  const cab = `<div class="group-meta"><strong>Enlace ${i + 1} de ${total}</strong><span>${fmtNum(g.anuncios)} anuncios de estas dos páginas</span><span>${escaparHtml(como)}</span></div>
+    <div class="group-text" style="overflow-wrap:anywhere"><code>${escaparHtml(g.clave)}</code></div>`;
+  const tambien = (g.otras_paginas || []).length ? `<div class="xsmall muted" style="margin-top:6px">También lo usan: ${g.otras_paginas.map(escaparHtml).join(", ")}</div>` : "";
+  if (!par) return `<article class="group">${cab}${tambien}</article>`;
+  const dias = Math.round(par.d / 86400000);
+  const distancia = par.d === Infinity ? "" : par.d === 0 ? "Los dos anuncios empezaron el mismo día." : `Los dos anuncios empezaron con ${dias} día${dias === 1 ? "" : "s"} de diferencia.`;
+  const nota = g.por_dominio ? "El enlace marcado lleva al mismo sitio; la dirección exacta puede ser distinta en cada anuncio." : "El enlace marcado es el mismo en los dos anuncios.";
+  const otros = det.anuncios.filter((v) => v !== par.x && v !== par.y), porPagina = new Map();
+  otros.forEach((v) => { if (!porPagina.has(v.page_name)) porPagina.set(v.page_name, []); porPagina.get(v.page_name).push(v); });
+  const enlaceFecha = (v) => enlace(v.link, `${formatearFechaSafe(v.fecha)} ↗`) || escaparHtml(formatearFechaSafe(v.fecha));
+  const masAnuncios = otros.length || det.omitidos ? `
+    <details class="par-otros">
+      <summary>${otros.length ? `${fmtNum(otros.length)} anuncio${otros.length === 1 ? "" : "s"} más con este enlace, cada uno con su enlace a Meta` : "Más anuncios con este enlace"}</summary>
+      ${[...porPagina].map(([pagina, lista]) => `<div><strong>${escaparHtml(pagina)}</strong>: ${lista.map(enlaceFecha).join(" · ")}</div>`).join("")}
+      ${det.omitidos ? `<div class="muted">y ${fmtNum(det.omitidos)} más que no se listan aquí (están en la Biblioteca de Meta).</div>` : ""}
+    </details>` : "";
+  return `
+    <article class="group">
+      ${cab}
+      <div class="par-anuncios">${columnaAnuncio(par.x, resaltarEnlace(det.textos[par.x.t], g), afil(par.x.page_name))}${columnaAnuncio(par.y, resaltarEnlace(det.textos[par.y.t], g), afil(par.y.page_name))}</div>
+      <div class="par-distancia">${[distancia, nota].filter(Boolean).join(" ")}</div>
+      ${tambien}
+      ${masAnuncios}
+    </article>`;
+}
+
+/** Detalle de una línea de «mismo enlace» de la red: TODOS los enlaces que comparten sus dos páginas, cada uno con sus dos anuncios lado a lado. */
+async function mostrarDetalleEnlace(e) {
+  const panel = $("red-detalle"), R = state.resumen, a = e.a.nombre, b = e.b.nombre, pedido = ++pedidoTextoDeLinea;   // si había otra comparación cargándose, ya no debe pintarse
+  const cab = `<strong>Mismo enlace</strong> · ${escaparHtml(a)} ↔ ${escaparHtml(b)}`;
+  const aviso = `<p class="xsmall muted" style="margin-top:12px">Un indicador, no una prueba: dos páginas pueden enlazar al mismo sitio por pertenecer a la misma organización o campaña, o por compartir una noticia o un formulario público.</p>`;
+  panel.innerHTML = `${cab}<br><span class="muted">Buscando los anuncios…</span>`;
   abrirDerecho("detalle");
+  let d = null;
+  try {
+    d = await fetchApi(`/api/ads/enlaces/par?pagina_a=${encodeURIComponent(a)}&pagina_b=${encodeURIComponent(b)}&provincia=${encodeURIComponent(R.alcance)}`, { timeout: 60000 });
+  } catch (err) { d = null; }
+  if (pedido !== pedidoTextoDeLinea || R.der !== "detalle") return;    // mientras tanto se pulsó otra cosa
+  if (!d || !Array.isArray(d.grupos)) {
+    const urls = e.detalles || [];
+    panel.innerHTML = `<div>${cab}</div>${urls.map((u) => `<div style="margin:6px 0;overflow-wrap:anywhere">· <code>${escaparHtml(u)}</code></div>`).join("")}
+      ${htmlGrupoDeLinea(e, "Aparece")}<span class="muted">No se pudo cargar la comparación de anuncios.</span>${aviso}`;
+    return;
+  }
+  const grupos = d.grupos.filter((g) => g.detalle);
+  const anuncios = grupos.reduce((s, g) => s + g.anuncios, 0);
+  const fechas = grupos.flatMap((g) => [g.primer_anuncio, g.ultimo_anuncio]).filter(Boolean).sort();
+  const plural = (n, uno, varios) => `${fmtNum(n)} ${n === 1 ? uno : varios}`;
+  panel.innerHTML = `
+    <div>${cab}</div>
+    ${htmlGrupoDeLinea(e, "Alguno de estos enlaces aparece")}
+    <div class="muted" style="margin:4px 0 12px">${plural(grupos.length, "enlace compartido", "enlaces compartidos")} · ${plural(anuncios, "anuncio", "anuncios")}${fechas.length ? ` · del ${escaparHtml(formatearFechaSafe(fechas[0]))} al ${escaparHtml(formatearFechaSafe(fechas[fechas.length - 1]))}` : ""}</div>
+    ${grupos.length ? grupos.map((g, i) => htmlEnlacePar(g, i, grupos.length, a, b)).join("") : `<p class="muted">Esta línea no tiene enlaces compartidos con los filtros actuales.</p>`}
+    ${aviso}`;
 }
 
 let pedidoTextoDeLinea = 0;

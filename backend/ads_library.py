@@ -2045,6 +2045,71 @@ class AdLibraryClient:
             "afiliaciones": conteo,
         }
 
+    def enlaces_par(self, pagina_a: str, pagina_b: str, provincia: Optional[str] = None, sin_cne: bool = False,
+                    max_paginas_enlace: int = 8) -> Dict[str, Any]:
+        """
+        Los enlaces que comparten dos páginas, con los anuncios de cada una que los llevan (texto, fechas y su propio enlace a la Biblioteca de
+        Meta) para verlos lado a lado. Es el detalle de una línea «mismo enlace» de la red y sigue su misma regla: `_clave_enlace` y un enlace
+        que usan más de `max_paginas_enlace` páginas no cuenta. El formato de cada grupo es el de `textos_duplicados(entre=…)`.
+        """
+        ads, estado = self.obtener_nacional()
+        ads = _sin_cne(ads, sin_cne)
+        objetivo = _norm(provincia) if provincia else ""
+        if objetivo in ("todas", "ecuador", "ecuador todas"):
+            objetivo = ""
+        par = {pagina_a, pagina_b}
+        paginas_de: Dict[str, set] = {}                      # clave de enlace -> páginas que la usan (todas, para aplicar el tope de la red)
+        del_par: Dict[str, Dict[str, Any]] = {}              # clave -> {"urls": {...}, "ads": {id: anuncio}} solo con anuncios de las dos páginas
+        for ad in ads:
+            if objetivo and self._alcance_en(ad, objetivo) is None:
+                continue
+            pagina = ad["page_name"] or str(ad["page_id"] or "")
+            if not pagina:
+                continue
+            for url in _URL_RE.findall(ad["text"] or ""):
+                clave = _clave_enlace(url)
+                if not clave:
+                    continue
+                paginas_de.setdefault(clave, set()).add(pagina)
+                if pagina in par:
+                    g = del_par.setdefault(clave, {"urls": {}, "ads": {}})
+                    limpia = url.rstrip(".,;:!?")
+                    g["urls"][limpia] = g["urls"].get(limpia, 0) + 1
+                    g["ads"][ad["id"]] = ad
+        indice = _cargar_afiliaciones()
+        grupos: List[Dict[str, Any]] = []
+        for clave, g in del_par.items():
+            miembros = list(g["ads"].values())
+            if not par <= {a["page_name"] for a in miembros} or len(par) < 2 or len(paginas_de[clave]) > max_paginas_enlace:
+                continue
+            fechas = sorted(a["date"] for a in miembros if a["date"])
+            tabla_textos: Dict[str, int] = {}
+            detalle: List[Dict[str, Any]] = []
+            por_pagina: Dict[str, int] = {}
+            omitidos = 0
+            for a in sorted(miembros, key=lambda a: (a["date"] or "", a["id"])):
+                if por_pagina.get(a["page_name"], 0) >= MAX_ANUNCIOS_POR_PAGINA_DETALLE:
+                    omitidos += 1
+                    continue
+                por_pagina[a["page_name"]] = por_pagina.get(a["page_name"], 0) + 1
+                detalle.append({"id": a["id"], "page_name": a["page_name"], "page_id": a.get("page_id"), "fecha": a["date"], "fecha_fin": a["fecha_fin"],
+                                "activo": a["activo"], "t": tabla_textos.setdefault((a["text"] or "")[:1500], len(tabla_textos)), "link": a["link"],
+                                "financiador": a["financiador"], "moneda": a["moneda"], "gasto": a["gasto"], "impresiones": a["impresiones"],
+                                "plataformas": a["plataformas"]})
+            ids = {a["page_name"]: a.get("page_id") for a in miembros}
+            grupos.append({
+                "clave": clave, "por_dominio": "/" not in clave and "?" not in clave,
+                "urls": [u for u, _ in sorted(g["urls"].items(), key=lambda kv: (-kv[1], kv[0]))[:6]], "n_urls": len(g["urls"]),
+                "anuncios": len(miembros), "n_paginas": len(paginas_de[clave]),
+                "otras_paginas": sorted(paginas_de[clave] - par),
+                "paginas": [{"page_name": p, "page_id": ids.get(p), "afiliacion": _afiliacion(indice, p, ids.get(p)),
+                             "anuncios": sum(1 for a in miembros if a["page_name"] == p)} for p in (pagina_a, pagina_b)],
+                "primer_anuncio": fechas[0] if fechas else "", "ultimo_anuncio": fechas[-1] if fechas else "",
+                "detalle": {"textos": list(tabla_textos), "anuncios": detalle, "omitidos": omitidos},
+            })
+        grupos.sort(key=lambda x: (-x["anuncios"], x["clave"]))
+        return {"alcance": "provincia" if objetivo else "nacional", "pagina_a": pagina_a, "pagina_b": pagina_b, "grupos": grupos, "estado": estado}
+
     def guardar_afiliacion(self, datos: Dict[str, Any]) -> Dict[str, Any]:
         """
         Crea o actualiza una entrada de backend/afiliaciones.json (se busca por nombre normalizado, sin tildes, o por cualquiera de

@@ -34,7 +34,7 @@ _collector_task = None
 #   afiliaciones y revisiones, /docs, /openapi.json, diagnósticos, la raíz con el estado de los servicios) responde 404/403.
 #   Además las respuestas se marcan como cacheables 5 minutos en la CDN y no se permite CORS desde otros sitios.
 _SOLO_LECTURA = os.getenv("NOAI_SOLO_LECTURA", "").strip().lower() in ("1", "true", "yes", "si", "sí")
-_RUTAS_DE_DATOS = re.compile(r"^/api/(ads/(mapa|comparar|top-gastadores|red-pagadores|afiliaciones|anuncios|textos-duplicados(/par)?)"
+_RUTAS_DE_DATOS = re.compile(r"^/api/(ads/(mapa|comparar|top-gastadores|red-pagadores|afiliaciones|anuncios|textos-duplicados(/par)?|enlaces/par)"
                              r"|dashboard/(stats|keywords)|noticias)/?$")
 
 
@@ -356,6 +356,13 @@ def textos_duplicados_par(pagina_a: str = Query(..., max_length=200), pagina_b: 
                           provincia: Optional[str] = Query(None), sin_cne: bool = Query(False)):
     """Los mensajes repetidos entre dos páginas, con cada anuncio (texto, fechas y su propio enlace a la Biblioteca de Meta) para verlos lado a lado."""
     return unified_service.ads_library.textos_duplicados(nombre_provincia(provincia), 200, sin_cne=sin_cne, revisados=True, entre=(pagina_a, pagina_b))
+
+
+@app.get("/api/ads/enlaces/par")
+def enlaces_par(pagina_a: str = Query(..., max_length=200), pagina_b: str = Query(..., max_length=200),
+                provincia: Optional[str] = Query(None), sin_cne: bool = Query(False)):
+    """Los enlaces que comparten dos páginas, con los anuncios de cada una que los llevan, para verlos lado a lado (línea «mismo enlace» de la red)."""
+    return unified_service.ads_library.enlaces_par(pagina_a, pagina_b, nombre_provincia(provincia), sin_cne=sin_cne)
 
 
 class PaginaRevisada(BaseModel):
