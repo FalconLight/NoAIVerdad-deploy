@@ -249,6 +249,26 @@ class MensajesRepetidosSinFalsosPositivosTests(unittest.TestCase):
         r = self._resultado([self._ad("1", "A", solo_etiquetas), self._ad("2", "B", solo_etiquetas)])
         self.assertEqual((r["analizados"], r["total_grupos"]), (0, 0))
 
+    def test_clave_de_enlace_dominio_propio_o_url_completa_si_el_host_es_generico(self):
+        clave = ads_library._clave_enlace
+        # un dominio propio se compara por dominio: dos notas del mismo sitio son el mismo destino
+        self.assertEqual(clave("https://www.Ejemplo.ec/nota-1?utm_source=fb"), "ejemplo.ec")
+        self.assertEqual(clave("https://ejemplo.ec/otra/"), "ejemplo.ec")
+        # acortadores y servicios que usa cualquiera: solo coincide la misma URL
+        self.assertNotEqual(clave("https://share.google/AbC123"), clave("https://share.google/XyZ789"))
+        self.assertEqual(clave("https://share.google/AbC123."), "share.google/AbC123")
+        for a, b in (("https://acortar.link/aaa", "https://acortar.link/bbb"), ("https://wa.link/aaa", "https://wa.link/bbb"),
+                     ("https://f.mtr.cool/aaa", "https://f.mtr.cool/bbb"), ("https://apps.apple.com/ec/app/a/id1", "https://apps.apple.com/ec/app/b/id2")):
+            self.assertNotEqual(clave(a), clave(b))
+        self.assertIsNone(clave("https://www.google.com/"))                                  # el host genérico solo no es un destino
+        self.assertEqual(clave("https://maps.app.goo.gl/mTDA7h17"), "maps.app.goo.gl/mTDA7h17")   # subdominio de un genérico
+        # lo que va tras «?» cuenta si dice a dónde lleva; el seguimiento no
+        self.assertNotEqual(clave("https://www.youtube.com/watch?v=AAA"), clave("https://www.youtube.com/watch?v=BBB"))
+        self.assertEqual(clave("https://www.youtube.com/watch?v=AAA&si=xyz&utm_medium=paid"), clave("https://youtube.com/watch?v=AAA"))
+        self.assertNotEqual(clave("https://play.google.com/store/apps/details?id=ec.uno"), clave("https://play.google.com/store/apps/details?id=ec.dos"))
+        self.assertEqual(clave("https://wa.me/593980530881?text=Hola"), "wa.me/593980530881")
+        self.assertEqual(clave("https://x.com/alguien/status/123?s=20&t=abc"), "x.com/alguien/status/123")
+
     def test_el_enlace_no_cuenta_como_palabras_para_el_minimo(self):
         # Seis palabras y un enlace largo: sin el enlace es un texto corto y genérico.
         corto = "Inscríbete ya en la plataforma https://jovenesenaccion.trabajo.gob.ec/inscripcion/formulario/registro/nuevo"

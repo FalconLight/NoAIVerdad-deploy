@@ -780,21 +780,43 @@ def _sin_cne(ads: List[Dict[str, Any]], activo: bool) -> List[Dict[str, Any]]:
     return [a for a in ads if not _es_cne(a)] if activo else ads
 
 
-# Hosts genéricos (acortadores, redes, formularios): compartir el host no dice nada; se compara la URL completa.
+# Hosts genéricos (acortadores, redes, tiendas de apps, formularios, buscadores): los usa cualquiera, así que compartir el host no dice nada;
+# se compara la URL completa. Un subdominio de estos también es genérico (maps.app.goo.gl, chat.whatsapp.com…).
 _HOSTS_GENERICOS = {
-    "sites.google.com", "docs.google.com", "drive.google.com", "forms.gle", "flic.kr", "link.msgsndr.com",
-    "bit.ly", "tinyurl.com", "linktr.ee", "goo.gl", "t.co", "wa.me", "api.whatsapp.com", "whatsapp.com",
-    "facebook.com", "m.facebook.com", "fb.me", "fb.com", "instagram.com", "youtube.com", "m.youtube.com", "youtu.be",
-    "x.com", "twitter.com", "tiktok.com", "vm.tiktok.com", "canva.com", "linkedin.com",
+    # acortadores
+    "bit.ly", "tinyurl.com", "goo.gl", "goo.su", "t.co", "ow.ly", "n9.cl", "acortar.link", "f.mtr.cool", "mtr.cool", "cutt.ly", "rebrand.ly",
+    "rb.gy", "is.gd", "t.ly", "tiny.cc", "shorturl.at", "short.gy", "s.id", "lc.cx", "buff.ly", "lnkd.in", "dub.sh", "surl.li", "urlz.fr",
+    "v.gd", "shre.ink", "tr.ee", "flic.kr", "link.msgsndr.com", "g.co", "share.google",
+    # páginas de enlaces
+    "linktr.ee", "linkr.bio", "bio.link", "beacons.ai", "taplink.cc", "lnk.bio", "linkin.bio", "msha.ke", "heylink.me",
+    # mensajería
+    "wa.me", "wa.link", "walink.co", "api.whatsapp.com", "whatsapp.com", "t.me", "telegram.me", "m.me", "msng.link",
+    # redes y plataformas de contenido
+    "facebook.com", "m.facebook.com", "fb.me", "fb.com", "fb.watch", "instagram.com", "threads.net", "threads.com", "youtube.com",
+    "m.youtube.com", "youtu.be", "x.com", "twitter.com", "tiktok.com", "vm.tiktok.com", "linkedin.com", "pinterest.com", "pin.it",
+    "twitch.tv", "kick.com", "vimeo.com", "open.spotify.com", "spotify.link", "soundcloud.com", "ivoox.com", "issuu.com", "medium.com",
+    # Google, formularios, documentos y reuniones
+    "google.com", "google.com.ec", "sites.google.com", "docs.google.com", "drive.google.com", "forms.gle", "g.page", "play.google.com",
+    "forms.office.com", "forms.cloud.microsoft", "typeform.com", "surveymonkey.com", "jotform.com", "survey.app.do", "canva.com",
+    "dropbox.com", "1drv.ms", "onedrive.live.com", "zoom.us", "teams.microsoft.com", "calendly.com", "eventbrite.com", "doi.org",
+    # tiendas
+    "apps.apple.com", "amazon.com", "mercadolibre.com.ec", "hotmart.com", "change.org",
 }
+# Parámetros que no cambian a dónde lleva el enlace (seguimiento, idioma, mensaje ya escrito): no cuentan al comparar dos URL de un host genérico.
+_PARAMS_SIN_DESTINO = {"fbclid", "gclid", "igshid", "igsh", "si", "feature", "ref", "ref_src", "ref_url", "mibextid", "sfnsn", "rdid", "share_url",
+                       "app", "text", "hl", "lang", "locale", "s", "t", "pp", "ab_channel", "usp", "source", "share", "type", "context"}
 PAGINAS_POR_PROVINCIA_GARANTIZADAS = 2   # vista nacional de la red: páginas con que entra cada provincia que quedaría sin ninguna
 _URL_RE = re.compile(r"https?://[^\s)\]>\"']+", re.IGNORECASE)
 
 
 def _clave_enlace(url: str) -> Optional[str]:
-    """Clave para comparar enlaces entre anuncios: el dominio, o la URL completa si el dominio es genérico."""
+    """
+    Clave para comparar enlaces entre anuncios: el dominio, o la URL completa si el dominio es genérico. En un host genérico cuenta también lo
+    que va tras «?» cuando dice a dónde lleva (youtube.com/watch?v=…, play.google.com/…?id=…): sin eso, dos vídeos distintos parecerían el mismo
+    enlace. Los parámetros de seguimiento (utm_*, fbclid…) no cuentan.
+    """
     url = url.rstrip(".,;:!?")
-    m = re.match(r"https?://([^/?#\s]+)([^?#\s]*)", url, re.IGNORECASE)
+    m = re.match(r"https?://([^/?#\s]+)([^?#\s]*)(?:\?([^#\s]*))?", url, re.IGNORECASE)
     if not m:
         return None
     host = m.group(1).lower().rstrip(".")
@@ -802,7 +824,11 @@ def _clave_enlace(url: str) -> Optional[str]:
         host = host[4:]
     if host in _HOSTS_GENERICOS or any(host.endswith("." + g) for g in _HOSTS_GENERICOS):
         ruta = m.group(2).rstrip("/")
-        return host + ruta if ruta else None
+        destino = sorted(p for p in (m.group(3) or "").split("&")
+                         if p and "=" in p and p.split("=", 1)[1] and not p.lower().startswith("utm_") and p.split("=", 1)[0].lower() not in _PARAMS_SIN_DESTINO)
+        if not ruta and not destino:
+            return None
+        return host + ruta + ("?" + "&".join(destino) if destino else "")
     return host
 
 
