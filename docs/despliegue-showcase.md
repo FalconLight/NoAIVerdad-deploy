@@ -31,7 +31,7 @@ Cada `git push` a la rama `main` publica el sitio solo. Vercel usa los archivos 
 
 - `vercel.json`: no instala nada de Node; arma `public/` con `deploy/vercel/armar_public.sh` y sirve `/api/*` con `api/index.py`.
 - `requirements.txt` (raíz): dependencias de la función, sin `firebase-admin`, `uvloop` ni `watchfiles`. El servidor local sigue usando `backend/requirements.txt`.
-- `backend/data/ads_snapshot.json`: la copia de anuncios va en el repositorio. Para actualizar los datos, reemplázala, haz commit y push (cada versión suma unos 53 MB al historial).
+- `backend/data/ads_snapshot.jsonl.gz`: la copia de anuncios va en el repositorio, en formato compacto (comprimida, un anuncio por línea; unos 32 MB para los ~100 mil anuncios desde enero de 2025). Sale del archivo histórico, no de la ventana de 120 días de la app. Para actualizarla: primero pon el archivo al día (`reanudar-captura.cmd`, o abre la app local, que lo alimenta en cada descarga) y luego, desde `backend/`, `python tools/archivo_meta.py snapshot --salida data/ads_snapshot.jsonl.gz --desde 2025-01-01`; después commit y push. Con este período la función usa cerca de 1,1 GB de memoria al arrancar (el límite del plan gratuito de Vercel es 2 GB): ampliar mucho el rango exige otro alojamiento.
 
 La publicación con la CLI (abajo) sigue funcionando como alternativa.
 

@@ -39,6 +39,6 @@ backend/data/
 # Repositorio de GitHub conectado a Vercel: la copia de anuncios sí se versiona (Vercel la necesita para construir el sitio)
 !backend/data/
 backend/data/*
-!backend/data/ads_snapshot.json
+!backend/data/ads_snapshot.jsonl.gz
 public/
 .vercel/

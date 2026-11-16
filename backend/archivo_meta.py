@@ -692,7 +692,12 @@ def escribir_snapshot(archivo: ArchivoMeta, cliente: Any, salida: str, desde: Op
     """
     Escribe una copia en el formato de `backend/data/ads_snapshot.json` ({guardado, terminos, dias, ads}) con los anuncios del archivo cuyo
     inicio cae entre `desde` y `hasta` (o los últimos `dias` días). Se carga con AD_LIBRARY_SNAPSHOT=<salida> y AD_LIBRARY_SOLO_COPIA=true.
+
+    Si `salida` termina en `.jsonl.gz` escribe la copia compacta (ver `ads_library._leer_copia_compacta`): comprimida, un anuncio por línea y la
+    demografía en ternas. Es la que conviene para períodos largos: ocupa unas diez veces menos en disco y bastante menos memoria al cargarla.
     """
+    if salida.endswith(".jsonl.gz"):
+        return _escribir_snapshot_compacto(archivo, cliente, salida, desde, hasta, dias, hoy)
     hoy = hoy or date.today()
     if dias and not desde:
         desde = (hoy - timedelta(days=int(dias))).isoformat()
@@ -714,6 +719,48 @@ def escribir_snapshot(archivo: ArchivoMeta, cliente: Any, salida: str, desde: Op
         dias_reales = dias or ((hoy - date.fromisoformat(primero)).days if primero else 0)
         f.write("], " + json.dumps({"guardado": _ahora(), "terminos": list(cliente.terms), "dias": int(dias_reales), "origen": "archivo-meta",
                                     "desde": desde or primero, "hasta": hasta or ultimo}, ensure_ascii=False)[1:])
+    os.replace(tmp, salida)
+    return {"ruta": os.path.abspath(salida), "anuncios": n, "desde": desde or primero, "hasta": hasta or ultimo, "dias": int(dias_reales),
+            "bytes": os.path.getsize(salida)}
+
+
+def _terna(d: Dict[str, Any]) -> List[Any]:
+    try:
+        pct: Any = float(d.get("percentage"))
+    except (TypeError, ValueError):
+        pct = d.get("percentage")
+    return [d.get("age") or "", d.get("gender") or "", pct]
+
+
+def _escribir_snapshot_compacto(archivo: ArchivoMeta, cliente: Any, salida: str, desde: Optional[str], hasta: Optional[str],
+                                dias: Optional[int], hoy: Optional[date]) -> Dict[str, Any]:
+    hoy = hoy or date.today()
+    if dias and not desde:
+        desde = (hoy - timedelta(days=int(dias))).isoformat()
+    os.makedirs(os.path.dirname(os.path.abspath(salida)) or ".", exist_ok=True)
+    cuerpo = salida + ".cuerpo.tmp"
+    n = 0
+    primero = ultimo = ""
+    with gzip.open(cuerpo, "wt", encoding="utf-8", newline="\n") as f:
+        for reg in archivo.registros(desde, hasta):
+            ad = {k: v for k, v in cliente._normalizar(reg["raw"]).items() if not k.startswith("_")}
+            if not ad.get("id"):
+                continue
+            ad["demografia"] = [_terna(d) for d in ad.get("demografia") or [] if isinstance(d, dict)]
+            f.write(json.dumps(ad, ensure_ascii=False, separators=(",", ":")) + "\n")
+            n += 1
+            fch = str(ad.get("date") or "")[:10]
+            if fch:
+                primero, ultimo = min(primero or fch, fch), max(ultimo, fch)
+    dias_reales = dias or ((hoy - date.fromisoformat(primero)).days if primero else 0)
+    cabecera = {"guardado": _ahora(), "terminos": list(cliente.terms), "dias": int(dias_reales), "origen": "archivo-meta", "formato": "jsonl-1",
+                "desde": desde or primero, "hasta": hasta or ultimo, "anuncios": n}
+    tmp = salida + ".tmp"
+    with open(tmp, "wb") as fuera:                       # la cabecera va primero, pero sus datos solo se saben al final: dos miembros gzip seguidos
+        fuera.write(gzip.compress((json.dumps(cabecera, ensure_ascii=False) + "\n").encode("utf-8")))
+        with open(cuerpo, "rb") as dentro:
+            shutil.copyfileobj(dentro, fuera)
+    os.remove(cuerpo)
     os.replace(tmp, salida)
     return {"ruta": os.path.abspath(salida), "anuncios": n, "desde": desde or primero, "hasta": hasta or ultimo, "dias": int(dias_reales),
             "bytes": os.path.getsize(salida)}

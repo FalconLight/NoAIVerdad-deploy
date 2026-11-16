@@ -205,6 +205,35 @@ class EngancheAppTest(unittest.TestCase):
             self.assertEqual(cliente.diagnostico()["anuncios_devueltos"], 2)
             self.assertEqual(cliente.top_gastadores(None, 5)["anunciantes"][0]["anuncios"], 2)
 
+    def test_snapshot_compacto_jsonl_gz_da_lo_mismo_que_el_json(self):
+        demo = [{"percentage": "0.25", "age": "18-24", "gender": "female"}, {"percentage": "0.75", "age": "65+", "gender": "male"}]
+        a = _archivo()
+        a.fusionar([_crudo(1, "2025-02-01", demographic_distribution=demo), _crudo(2, "2026-10-01", page_id="222", page_name="Otra página"),
+                    _crudo(3, "2024-06-01")])
+        carpeta = tempfile.mkdtemp(prefix="noai_snap_")
+        normal, compacta = os.path.join(carpeta, "historico.json"), os.path.join(carpeta, "historico.jsonl.gz")
+        r1 = escribir_snapshot(a, _cliente(), normal, desde="2025-01-01", hoy=date(2026, 11, 10))
+        r2 = escribir_snapshot(a, _cliente(), compacta, desde="2025-01-01", hoy=date(2026, 11, 10))
+        self.assertEqual([r2[k] for k in ("anuncios", "desde", "hasta", "dias")], [r1[k] for k in ("anuncios", "desde", "hasta", "dias")])
+        with gzip.open(compacta, "rt", encoding="utf-8") as f:
+            lineas = f.read().splitlines()
+        self.assertEqual((len(lineas), json.loads(lineas[0])["anuncios"]), (3, 2))           # cabecera + un anuncio por línea
+        self.assertNotIn(SECRET, "".join(lineas))
+        self.assertEqual(json.loads(lineas[1])["demografia"], [["18-24", "female", 0.25], ["65+", "male", 0.75]])
+
+        resultados = []
+        for ruta in (normal, compacta):
+            cliente = _cliente(META_AD_LIBRARY_TOKEN="", META_INTEGRATION_ENABLED="", AD_LIBRARY_SNAPSHOT=ruta, AD_LIBRARY_SOLO_COPIA="true")
+            with mock.patch("ads_library.requests.get", side_effect=AssertionError("no debe llamar a Meta")), \
+                    mock.patch.object(cliente, "_claves_firebase", return_value={}):
+                ads, estado = cliente.obtener_nacional()
+                red = cliente.red_pagadores(None, 15)
+                resultados.append((sorted(x["id"] for x in ads), estado["dias"], estado["total_nacional"],
+                                   json.dumps(red, sort_keys=True, ensure_ascii=False, default=str), cliente.top_gastadores(None, 5)["anunciantes"]))
+        self.assertEqual(resultados[0], resultados[1])
+        self.assertEqual(resultados[1][0], ["1", "2"])
+        self.assertIn("18-24", resultados[1][3])                                             # la demografía en ternas llega a la red
+
     def test_solo_copia_sin_archivo_lo_dice_y_no_llama_a_meta(self):
         cliente = _cliente(META_AD_LIBRARY_TOKEN="", AD_LIBRARY_SOLO_COPIA="true")
         with mock.patch("ads_library.requests.get", side_effect=AssertionError("no debe llamar a Meta")):

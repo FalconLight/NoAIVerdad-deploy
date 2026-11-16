@@ -22,11 +22,13 @@ Notas de diseño:
 import collections
 import contextvars
 import difflib
+import gzip
 import hashlib
 import itertools
 import json
 import logging
 import os
+import sys
 import tempfile
 import re
 import threading
@@ -87,6 +89,33 @@ def _retirado_por_meta(texto: Any) -> bool:
         return False
     limpio = _norm_texto_directo(texto)
     return bool(_PLACEHOLDER_RETIRADO.search(limpio) or _PLACEHOLDER_SIN_DESCARGO.search(limpio))
+
+def _leer_copia_compacta(ruta: str) -> Optional[Dict[str, Any]]:
+    """
+    Lee una copia compacta (`*.jsonl.gz`, la escribe `archivo_meta.escribir_snapshot`): primera línea con los datos de la copia ({guardado,
+    terminos, dias…}) y después un anuncio por línea, con la demografía en ternas [edad, género, porcentaje]. Sirve para períodos largos (cientos
+    de miles de anuncios): se lee línea a línea, sin tener nunca el JSON entero en memoria, y los textos que se repiten en miles de anuncios
+    (claves, páginas, provincias, tramos de edad) se guardan una sola vez. La demografía se queda en ternas: ocupa menos de la mitad.
+    """
+    unico = sys.intern
+    with gzip.open(ruta, "rt", encoding="utf-8") as f:
+        copia = json.loads(f.readline() or "{}")
+        if not isinstance(copia, dict):
+            return None
+        ads: List[Dict[str, Any]] = []
+        for linea in f:
+            if not linea.strip():
+                continue
+            ad = {unico(k): (unico(v) if isinstance(v, str) and k in _CAMPOS_REPETIDOS else v) for k, v in json.loads(linea).items()}
+            ad["demografia"] = [(unico(str(d[0])), unico(str(d[1])), d[2]) if isinstance(d, list) else d for d in ad.get("demografia") or []]
+            ad["regiones"] = [{"region": unico(str(r["region"])), "porcentaje": r["porcentaje"]} for r in ad.get("regiones") or []]
+            ad["plataformas"] = [unico(str(p)) for p in ad.get("plataformas") or []]
+            ads.append(ad)
+    copia["ads"] = ads
+    return copia if ads else None
+
+
+_CAMPOS_REPETIDOS = {"page_name", "page_id", "financiador", "moneda", "fuente"}
 
 _TOKEN_RE = re.compile(r"(access_token=)[^&\s'\")]+", re.IGNORECASE)
 
@@ -1072,6 +1101,8 @@ class AdLibraryClient:
 
     def _leer_snapshot(self) -> Optional[Dict[str, Any]]:
         try:
+            if self.snapshot_path.endswith(".gz"):
+                return _leer_copia_compacta(self.snapshot_path)
             with open(self.snapshot_path, encoding="utf-8") as f:
                 d = json.load(f)
             return d if isinstance(d.get("ads"), list) and d["ads"] else None
@@ -1878,9 +1909,10 @@ class AdLibraryClient:
                     n = _nombre_region(r["region"])
                     reg[n] = reg.get(n, 0.0) + r["porcentaje"] * peso
                 for d in a["demografia"] or []:
-                    p = _to_float(d.get("percentage")) * peso
-                    demo_edad[d.get("age") or "?"] = demo_edad.get(d.get("age") or "?", 0.0) + p
-                    demo_gen[d.get("gender") or "unknown"] = demo_gen.get(d.get("gender") or "unknown", 0.0) + p
+                    edad, genero, pct = (d.get("age"), d.get("gender"), d.get("percentage")) if isinstance(d, dict) else d   # copia compacta: ternas
+                    p = _to_float(pct) * peso
+                    demo_edad[edad or "?"] = demo_edad.get(edad or "?", 0.0) + p
+                    demo_gen[genero or "unknown"] = demo_gen.get(genero or "unknown", 0.0) + p
             total_reg, total_demo = sum(reg.values()), sum(demo_edad.values())
             principal = max(reg.items(), key=lambda kv: kv[1]) if reg else None
             fechas = sorted(a["date"] for a in ads if a["date"])
