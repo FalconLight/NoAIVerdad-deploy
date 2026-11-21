@@ -1952,6 +1952,9 @@ class AdLibraryClient:
                 "anuncios": len(ads), "activos": sum(1 for a in ads if a["activo"]),
                 "gasto": {"min": round(gmin), "max": round(gmax), "medio": round(sum(_medio(a["gasto"]) for a in ads))},
                 "region": ({"region": principal[0], "pct": round(principal[1] / total_reg, 3)} if principal and total_reg > 0 else None),
+                # alcance en cada provincia ([nombre, fracción], de mayor a menor, desde 0,5 %): la red dibuja las demás al seleccionar la página
+                "regiones": ([[k, round(v / total_reg, 4)] for k, v in sorted(reg.items(), key=lambda kv: -kv[1]) if v / total_reg >= 0.005]
+                             if total_reg > 0 else []),
                 "plataformas": sorted(plataformas),
                 "edades": ([{"edad": k, "pct": round(v / total_demo, 3)} for k, v in sorted(demo_edad.items())] if total_demo > 0 else []),
                 "genero": ({k: round(v / total_demo, 3) for k, v in demo_gen.items()} if total_demo > 0 else {}),

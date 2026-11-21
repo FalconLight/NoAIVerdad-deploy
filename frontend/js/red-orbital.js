@@ -22,7 +22,8 @@
  *              alSeleccionar(nodo|null, aristasDelNodo, restaurado), alElegirArista(arista con sus extremos a y b, restaurado),
  *              restaurar: lo que devolvió estado() de la instancia anterior (cámara y selección),
  *              cupoMinimo: páginas por provincia que se dibujan con poco zoom (el resto aparece al acercar; ver «nivel de detalle»),
- *              cubierto(): lo que tapan los paneles sobre el lienzo, { izq, der, arriba, abajo } en px: al seleccionar algo la cámara lo centra en lo que queda libre }
+ *              cubierto(): lo que tapan los paneles sobre el lienzo, { izq, der, arriba, abajo } en px: al seleccionar algo la cámara lo centra en lo que queda libre,
+              alcanceOtras(): { activo, umbral } — al seleccionar una página se dibujan líneas a las demás provincias donde llega (nodo.regiones) desde ese umbral }
  *  controlador: { refrescar, ajustar, limpiarSeleccion, centrarSeleccion, reorganizar, velocidad, disposicion, estado, png, destruir }
  */
 (function () {
@@ -258,6 +259,20 @@
     });
     nodos.filter((n) => n.tipo !== "provincia").sort((a, b) => b.gm - a.gm).forEach((n, i) => { n.rank = i; });
     const provincias = nodos.filter((n) => n.tipo === "provincia").sort((a, b) => b.gm - a.gm);
+
+    // ---------- alcance en otras provincias (solo con una página seleccionada)
+    // La unión «alcance» de siempre sigue siendo la estructura (la página orbita la provincia donde llega más). Al pulsar una página se añaden,
+    // solo mientras está seleccionada, líneas hacia las demás provincias donde llegan sus anuncios (n.raw.regiones: [[provincia, fracción], …]).
+    const solPorNombre = new Map(provincias.map((p) => [norm(p.nombre), p]));
+    const umbralAlc = () => (op.alcanceOtras ? Number(op.alcanceOtras().umbral) || 0 : 0.02);
+    const alcanceOn = () => !op.alcanceOtras || op.alcanceOtras().activo !== false;
+    /** Provincias secundarias de una página: [{ p: sol, v: fracción }] sin la principal (ya está unida) y por encima del umbral. */
+    function otrasProvincias(n) {
+      if (!n || n.tipo !== "pagina" || !alcanceOn() || !Array.isArray(n.raw.regiones)) return [];
+      const u = umbralAlc(), principal = n.parent && n.parent.tipo === "provincia" ? n.parent : null, out = [];
+      n.raw.regiones.forEach(([nombre, v]) => { const p = solPorNombre.get(norm(nombre)); if (p && p !== principal && v >= u) out.push({ p, v }); });
+      return out;
+    }
 
     // grupos: componentes unidos por pagador / texto / enlace que reúnen al menos 2 páginas (una pista, no una prueba)
     const GRP = new Set(["pagador", "texto", "enlace"]);
@@ -533,7 +548,8 @@
             grupos.some((g) => g.color === COLOR_ARISTA.pagador) ? par(COLOR_ARISTA.pagador, "pagador en común", "◌") : null,
             grupos.some((g) => g.color === COLOR_ARISTA.texto) ? par(COLOR_ARISTA.texto, "texto repetido", "◌") : null,
             grupos.some((g) => g.color === COLOR_ARISTA.enlace) ? par(COLOR_ARISTA.enlace, "mismo enlace", "◌") : null]),
-          col("Conexiones", tipos.map((t) => par(colorArista(t), defArista(t).corto,defArista(t).glifo || "──")))));
+          col("Conexiones", [...tipos.map((t) => par(colorArista(t), defArista(t).corto,defArista(t).glifo || "──")),
+            alcanceOn() && nodos.some((n) => Array.isArray(n.raw.regiones) && n.raw.regiones.length > 1) ? par(PAL.c3, "otras provincias (al elegir una página)", "━━") : null])));
       aplicarLeyenda();
     }
 
@@ -632,7 +648,13 @@
     const RESIST = 11, MAXARR = 70, K_EL = 80, C_EL = 9;
     const escala = () => clamp(Math.pow(cam.k, 0.65), 0.5, 1.9);      // los nodos crecen menos que el zoom (las letras y los nodos no se vuelven enormes), pero ya no se amontonan al alejar
     const focoNodo = () => st.hover || st.sel;
-    const conjuntoFoco = (n) => { if (!n._fs) { const s = new Set([n]); vecinos(n).forEach((v) => s.add(v)); if (n.grupo) n.grupo.nodos.forEach((v) => s.add(v)); n._fs = s; } return n._fs; };
+    const conjuntoFoco0 = (n) => { if (!n._fs) { const s = new Set([n]); vecinos(n).forEach((v) => s.add(v)); if (n.grupo) n.grupo.nodos.forEach((v) => s.add(v)); n._fs = s; } return n._fs; };
+
+    const conjuntoFoco = (n) => {
+      const base = conjuntoFoco0(n); if (n !== st.sel) return base;
+      const otras = otrasProvincias(n); if (!otras.length) return base;
+      const s = new Set(base); otras.forEach((o) => s.add(o.p)); return s;
+    };
     function radioNodo(n) {
       let r = n.r * escala(); const f = focoNodo();
       if (f) { if (n === f) r *= 1.15; else if (conjuntoFoco(f).has(n)) r *= 1.05; else r *= 0.7; }
@@ -875,7 +897,8 @@
 
       ctx.globalCompositeOperation = MEZCLA;         // halos de grupo (un lavado de ~15 %)
       grupos.forEach((gp) => {
-        const txtTenue = gp.color === COLOR_ARISTA.texto && dest !== "texto" && !(fs && gp.nodos.some((n) => fs.has(n))) ? 0.3 : 1;   // texto repetido: halo sutil hasta que se filtra o se enfoca
+        const sutil = gp.color === COLOR_ARISTA.texto || gp.color === COLOR_ARISTA.enlace;
+        const txtTenue = sutil && dest !== (gp.color === COLOR_ARISTA.texto ? "texto" : "enlace") && !(fs && gp.nodos.some((n) => fs.has(n))) ? 0.3 : 1;   // texto repetido y mismo enlace: halo sutil hasta que se filtra o se enfoca
         const a = (fs && !gp.nodos.some((n) => fs.has(n)) ? 0.35 : 1) * txtTenue;
         const refuerzo = dest && gp.color === colDest;                            // el halo del grupo iluminado crece y respira
         gp.nodos.forEach((n) => {
@@ -911,12 +934,16 @@
         const enGrupo = !!gE && gE.aristas.has(E);                                  // repite el mismo texto (o enlace) que la conexión pulsada
         if (fs) al = caliente ? TEMA.caliente : (gE ? (enGrupo ? al : al * 0.12) : (fs.has(A) && fs.has(B) ? al : al * 0.15));
         const elegida = st.selE === E, sobre = st.hoverE === E;                     // la conexión pulsada y la que está bajo el puntero
+        // con una entidad enfocada, de las conexiones de partido solo queda la suya (la que la une a su partido); las demás, entre soles
+        // o de otras páginas, casi desaparecen y no se rotulan: con las provincias de su alcance encendidas competían con ella
+        const partidoAjeno = f && f.tipo !== "provincia" && (E.tipo === "partido" || prov) && !caliente && !elegida && !sobre;
+        if (partidoAjeno) al = Math.min(al, 0.05);
         if (E.tipo === "alcance" && !caliente && !elegida && !sobre) {              // son cientos: un solo trazo por cada opacidad, en vez de uno por unión
           const clave = (al * vq).toFixed(4); let lote = lotes.get(clave); if (!lote) { lote = new Path2D(); lotes.set(clave, lote); }
           lote.moveTo(A.sx, A.sy); lote.quadraticCurveTo(E.cx, E.cy, B.sx, B.sy); E.lab = false; return;
         }
-        // texto repetido: línea sutil de fondo; solo se vuelve notoria al elegirla, al pasar el puntero, al enfocar uno de sus nodos o al filtrar por «texto»
-        const tenue = E.tipo === "texto" && !(dest === "texto" || elegida || sobre || caliente || enGrupo);
+        // texto repetido y mismo enlace: líneas sutiles de fondo; solo se vuelven notorias al elegirlas, al pasar el puntero, al enfocar uno de sus nodos o al filtrar por su tipo
+        const tenue = (E.tipo === "texto" || E.tipo === "enlace") && !(dest === E.tipo || elegida || sobre || caliente || enGrupo);
         // partido: también línea de fondo, pero más visible que la del texto repetido; se activa al filtrar por «partido», al elegir un partido, al pasar el puntero o al enfocar uno de sus nodos
         const esPart = E.tipo === "partido" || prov;
         const tenueP = esPart && !(dest === "partido" || F.partidos.size > 0 || F.partidoFiltrado || elegida || sobre || caliente || enGrupo);
@@ -944,12 +971,34 @@
         ctx.setLineDash(dash); ctx.strokeStyle = rgba(resaltada && !leve ? aclarar(col, 0.4) : col, Math.min(1, resaltada && !leve ? al * 1.15 : al)); ctx.lineWidth = grosor; ctx.stroke();
         ctx.setLineDash([]); ctx.globalCompositeOperation = "source-over";
         // montos: con un nodo enfocado solo se rotulan sus conexiones y las de su grupo (el resto no compite por la atención)
-        if (E.esp && E.tipo !== "partido" && !tenue && viva && (F.etiquetas || caliente) && (!fs || caliente || (gE ? enGrupo : (fs.has(A) && fs.has(B))))) chips.push({ E, prio: (caliente ? 0 : 1) - (E.labPrev ? 0.3 : 0) });
+        if (E.esp && E.tipo !== "partido" && !tenue && !partidoAjeno && viva && (F.etiquetas || caliente) && (!fs || caliente || (gE ? enGrupo : (fs.has(A) && fs.has(B))))) chips.push({ E, prio: (caliente ? 0 : 1) - (E.labPrev ? 0.3 : 0) });
         E.lab = false;
       });
       if (lotes.size) {
         ctx.globalCompositeOperation = MEZCLA; ctx.lineCap = "round"; ctx.setLineDash([]); ctx.lineWidth = 0.8;
         lotes.forEach((lote, clave) => { ctx.strokeStyle = rgba(colorArista("alcance"), Math.min(1, Number(clave) * TEMA.alcance)); ctx.stroke(lote); });
+        ctx.globalCompositeOperation = "source-over";
+      }
+
+      // con una página seleccionada, una línea casi imperceptible hacia cada otra provincia donde llega: lo que se lee es el % junto a cada sol
+      const chipsAlc = [];
+      if (st.sel && st.sel.tipo === "pagina" && st.sel.visA > 0.3) {
+        const n = st.sel, otras = otrasProvincias(n), atenuar = st.hover && st.hover !== n && !otras.some((o) => o.p === st.hover) ? 0.35 : 1;
+        const principal = n.parent && n.parent.tipo === "provincia" ? n.parent : null;
+        if (principal && n.raw.region) chipsAlc.push({ p: principal, v: n.raw.region.pct, principal: true });
+        const aparece = RM ? 1 : clamp((clock - (st.selT || 0)) / 0.6, 0, 1), col = PAL.c3;      // las líneas se trazan desde la página en 0,6 s
+        ctx.globalCompositeOperation = MEZCLA; ctx.lineCap = "round";
+        otras.forEach(({ p, v }, i) => {
+          const dx = p.sx - n.sx, dy = p.sy - n.sy, len = Math.hypot(dx, dy) || 1, bend = (i % 2 ? 1 : -1) * Math.min(90, len * 0.16);
+          const cx = (n.sx + p.sx) / 2 - dy / len * bend, cy = (n.sy + p.sy) / 2 + dx / len * bend;
+          const w = 0.8, al = (0.1 + 0.2 * Math.sqrt(v)) * atenuar;
+          // curva parcial (de la página hacia la provincia) mientras aparece
+          const t = suave(aparece), pts = [];
+          for (let j = 0; j <= 24; j++) { const u = t * j / 24, m = 1 - u; pts.push([m * m * n.sx + 2 * m * u * cx + u * u * p.sx, m * m * n.sy + 2 * m * u * cy + u * u * p.sy]); }
+          ctx.beginPath(); pts.forEach(([x, y], j) => (j ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+          ctx.strokeStyle = rgba(col, al); ctx.lineWidth = w; ctx.stroke();
+          if (aparece >= 1) chipsAlc.push({ p, v });
+        });
         ctx.globalCompositeOperation = "source-over";
       }
 
@@ -990,10 +1039,13 @@
       const cands = [];
       // «lente»: con zoom bajo no caben los nombres de todo, pero al acercar el cursor se rotula lo que lo rodea (hasta donde haya sitio)
       const lente = pointerIn && pointer && !drag && !pan && k < 1.7 ? pointer : null;
+      const conPct = new Set(chipsAlc.map((c) => c.p));
       nodos.forEach((n) => {
         if (!n.vp || n.visA < 0.6 || (fs && !fs.has(n)) || (q && !coincide(n, q))) return;         // lo que está fuera de la pantalla o aún no se ve no se rotula
         let pr;
-        if (f && n === f) pr = -4; else if (q && coincide(n, q)) pr = -3; else if (fs && fs.has(n)) pr = -2;
+        if (f && n === f) pr = -4; else if (q && coincide(n, q)) pr = -3;
+        else if (conPct.has(n)) pr = -2.6;                                          // una provincia con su % del alcance siempre lleva su nombre
+        else if (fs && fs.has(n)) pr = -2;
         else if (st.selE && (n === st.selE.a || n === st.selE.b)) pr = -1.9;                // las dos páginas de la conexión pulsada siempre llevan su nombre
         else if (nodosDest.has(n)) pr = -1.6;                                       // se ve quién está detrás del vínculo iluminado
         else if (F.partidos.size && F.partidos.has(partidoDe(n))) pr = -1;
@@ -1010,6 +1062,15 @@
       const puestos = [caja, leyenda, atrib].filter((e) => e && !e.hidden).map((e) => {
         const b = e.getBoundingClientRect(); return [b.left - rc.left - 3, b.top - rc.top - 3, b.width + 6, b.height + 6];
       }).filter((b) => b[2] > 8 && b[3] > 8);
+      // el % del alcance va encima de cada sol unido a la página seleccionada: su sitio se reserva antes de rotular, así ningún nombre
+      // (tampoco el de esa provincia) queda debajo de la etiqueta; los nombres buscan otra posición (derecha, izquierda o debajo)
+      chipsAlc.forEach((c) => {
+        c.fz = Math.round(11 + 9 * Math.sqrt(c.v)); c.alto = c.fz + 9;
+        c.texto = (c.v * 100 >= 10 ? Math.round(c.v * 100) : (c.v * 100).toFixed(1)) + " %";
+        const w = medir(c.texto, "700 " + c.fz + "px " + FUENTE) + 12;
+        c.x = c.p.sx; c.y = c.p.sy - radioNodo(c.p) - c.alto / 2 - 6; c.caja = [c.x - w / 2, c.y - c.alto / 2, w, c.alto];
+        puestos.push(c.caja);
+      });
       cands.forEach(({ n, pr }) => {
         const prov = n.tipo === "provincia", font = (prov || pr < -1.5 ? "650 " : "500 ") + (prov ? 12.5 : 11.5) + "px " + FUENTE;
         const texto = trunc(n.nombre, prov ? 30 : 26), tw = medir(texto, font), r = radioNodo(n);
@@ -1038,6 +1099,14 @@
         ctx.fillStyle = PAL.tinta; ctx.fillText(texto, p[0], p[1]);
       });
       for (const E of aristas) E.labPrev = E.lab;
+      // el % del alcance junto a cada sol unido a la página seleccionada (la principal en gris claro, las demás en el color de sus líneas)
+      // el tamaño de la etiqueta crece con el %: es lo que debe notarse (las líneas apenas se ven)
+      chipsAlc.forEach(({ principal, fz, alto, texto, x, y, caja: c }) => {
+        ctx.font = "700 " + fz + "px " + FUENTE;
+        ctx.fillStyle = principal ? PAL.tinta2 : PAL.c3; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(c[0], c[1], c[2], alto, alto / 2) : ctx.rect(c[0], c[1], c[2], alto); ctx.fill();
+        ctx.lineWidth = 1.5; ctx.strokeStyle = FONDO; ctx.stroke();
+        ctx.fillStyle = FONDO; ctx.fillText(texto, x, y + 0.5);
+      });
       ctx.textAlign = "left";
 
       const s = st.sel;                                 // selección: anillo + pulso
@@ -1077,11 +1146,13 @@
     // ---------- selección (el panel de detalle lo pinta la app)
     // `restaurado`: la selección se vuelve a poner al reconstruir la red (la app decide si refresca el panel de detalle; no se anuncia)
     function seleccionar(n, restaurado = false) {
-      st.sel = n; st.selE = null; st.grupoE = null; sucio = true;
+      st.sel = n; st.selE = null; st.grupoE = null; sucio = true; st.selT = clock;
       if (op.alSeleccionar) op.alSeleccionar(n ? n.raw : null, n ? n.aristas.filter(aristaVisible).map((E) => Object.assign({}, E.raw, { a: E.a.raw, b: E.b.raw })) : [], restaurado);
       if (n && !restaurado) {
         anunciar(`${ETIQ[n.tipo]} ${n.nombre}. Inversión estimada ${usd(n.gm)}. ${vecinos(n).size} conexiones.`);
-        centrarEnLibre(n.wx, n.wy);          // ya con el panel abierto: lo seleccionado se centra en lo que el panel no tapa
+        // si la página llega a otras provincias, se encuadran la página y esos soles para que se vean sus líneas
+        const otras = otrasProvincias(n);
+        if (otras.length) encuadrarNodos([n, ...otras.map((o) => o.p)]); else centrarEnLibre(n.wx, n.wy);
       }
     }
 
@@ -1207,6 +1278,8 @@
       destacar(tipo, ms = 3500) { if (RM) return; forzado = { tipo, hasta: clock + ms / 1000 }; sucio = true; },
       ajustar, destruir,
       limpiarSeleccion() { seleccionar(null); },
+      seleccionarId(id) { const n = porId.get(id); if (n) seleccionar(n); return !!n; },      // elegir una entidad desde fuera
+      reiniciarLineas() { st.selT = clock; sucio = true; },
       /** Vuelve a centrar lo seleccionado en la parte libre (la app lo pide al cambiar el tamaño del panel o la orientación de la pantalla). Sin zoom nuevo. */
       centrarSeleccion() {
         if (st.sel) centrarEnLibre(st.sel.wx, st.sel.wy, cam.k, 450);

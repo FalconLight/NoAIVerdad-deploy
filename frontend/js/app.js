@@ -2483,6 +2483,8 @@ function _normBusqueda(s) {
   return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 }
 
+// Al seleccionar una página, la red dibuja líneas a las demás provincias donde llega con al menos esta fracción de su alcance.
+const UMBRAL_ALCANCE_OTRAS = 0.02;
 const etiquetaArista = (e) => {
   if (e.tipo === "pagador") return `${e.anuncios} ${e.anuncios === 1 ? "anuncio" : "anuncios"} · ${fmtUsd(e.gasto.medio)}`;
   if (e.tipo === "texto") return "texto repetido";
@@ -2503,6 +2505,8 @@ function htmlDetalle(n, vs) {
   l.push(`${fmtNum(n.anuncios)} ${n.anuncios === 1 ? "anuncio" : "anuncios"}${n.activos != null ? ` (${fmtNum(n.activos)} activos)` : ""} · inversión estimada ${escaparHtml(fmtUsd(g.medio))}`
     + (g.min != null ? ` <span class="muted">(rango ${escaparHtml(fmtUsd(g.min))}–${escaparHtml(fmtUsd(g.max))})</span>` : ""));
   if (n.region) l.push(`Llega sobre todo a <strong>${escaparHtml(n.region.region)}</strong> (${Math.round(n.region.pct * 100)} %)`);
+  const otrasProv = (n.regiones || []).slice(1).filter(([, v]) => v >= UMBRAL_ALCANCE_OTRAS);      // las mismas que dibuja la red (líneas verdes)
+  if (otrasProv.length) l.push(`También llega a ${otrasProv.map(([p, v]) => `${escaparHtml(p)} <span class="muted">(${v * 100 >= 10 ? Math.round(v * 100) : (v * 100).toFixed(1)} %)</span>`).join(", ")}`);
   if ((n.plataformas || []).length) l.push(`Plataformas: ${n.plataformas.map(escaparHtml).join(", ")}`);
   if (n.primero) l.push(`Anuncios del ${escaparHtml(n.primero)} al ${escaparHtml(n.ultimo || n.primero)}`);
   if ((n.edades || []).length) {
@@ -2547,6 +2551,7 @@ function montarRedOrbital(g) {
   redOrbital = window.RedOrbital.montar($("red-lienzo"), g, {
     restaurar: previa,
     cubierto: zonaCubiertaRed,            // lo que tapan los paneles: al seleccionar algo, la cámara lo centra en lo que queda libre
+    alcanceOtras: () => ({ activo: true, umbral: UMBRAL_ALCANCE_OTRAS }),      // líneas a las demás provincias de la página seleccionada
     // Con todo el país se dibujan las páginas más grandes de cada provincia y aparecen más al acercar el zoom o el cursor; al enfocar una
     // provincia caben todas, así que se dibujan completas.
     cupoMinimo: state.resumen.alcance === "todas" ? undefined : 400,
