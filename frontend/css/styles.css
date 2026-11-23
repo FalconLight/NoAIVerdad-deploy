@@ -1433,3 +1433,10 @@ mark.dif { background: var(--warn-bg); color: var(--warn-ink); border-radius: 3p
 @supports not selector(::-webkit-scrollbar) {
   * { scrollbar-width: thin; scrollbar-color: var(--scroll-pulgar) transparent; }
 }
+
+/* ---------- Showcase: aviso de acceso limitado y búsqueda de apoyo ---------- */
+.btn-apoyo { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.btn-apoyo[hidden] { display: none; }
+.apoyo .tuto-pie { justify-content: flex-end; }
+.apoyo-contactos { list-style: none; padding-left: 0 !important; }
+.apoyo-contactos a { color: var(--accent); font-weight: 600; word-break: break-word; }

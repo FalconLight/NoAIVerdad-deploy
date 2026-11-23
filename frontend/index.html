@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  <link rel="stylesheet" href="css/styles.css?v=12.0.0">
+  <link rel="stylesheet" href="css/styles.css?v=12.2.0">
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -38,6 +38,7 @@
     <button type="button" id="btn-ficha" class="icon-btn" aria-expanded="false" aria-controls="ficha" aria-label="Validar perfiles" title="Validar perfiles: ver y editar la afiliación de una entidad desde cualquier pestaña">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2"/><path d="m15 18 2.5 2.5L22 15.5"/></svg>
     </button>
+    <button type="button" id="btn-apoyo" class="btn btn-apoyo" hidden title="Acceso limitado por ahora: cómo apoyar a NoAIVerdad y contactarnos"><span class="txt-largo">Apóyanos</span><span class="txt-corto">Apoyo</span></button>
     <button type="button" id="btn-tutorial" class="icon-btn" aria-label="Abrir el tutorial" title="Tutorial: cómo usar NoAIVerdad">?</button>
     <button type="button" id="btn-fechas" class="switch fechas-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="fechas-panel" aria-label="Elegir fechas">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
@@ -470,6 +471,29 @@
   <script src="js/firebase-sync.js"></script>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Showcase: aviso de acceso limitado y búsqueda de apoyo (se abre al entrar, una vez por sesión; botón «Apóyanos») -->
+  <div id="apoyo-overlay" class="tuto-overlay" hidden>
+    <div class="tuto apoyo" role="dialog" aria-modal="true" aria-labelledby="apoyo-titulo">
+      <button type="button" class="icon-btn tuto-cerrar" id="apoyo-cerrar" aria-label="Cerrar el aviso">✕</button>
+      <div class="xsmall muted" style="font-family:var(--font-mono)">Aviso</div>
+      <h2 id="apoyo-titulo">NoAIVerdad busca apoyo</h2>
+      <div class="tuto-cuerpo">
+        <p><strong>Por ahora limitamos el acceso.</strong> El servidor gratuito en el que funciona este sitio llegó a su límite por la cantidad de visitas. Mientras tanto, la web muestra por defecto solo los <strong>anuncios activos</strong> <span id="apoyo-rango">de la última semana</span>. Puedes cambiar las fechas y el interruptor «Solo activos» en la barra superior, aunque algunas consultas pueden tardar más.</p>
+        <p><strong>Queremos compartir mucho más:</strong> períodos más largos, datos actualizados a diario y más fuentes sobre la publicidad política en Ecuador. Para eso buscamos apoyo: alojamiento, financiamiento o alianzas con medios, universidades y organizaciones.</p>
+        <p>Si puedes ayudarnos, escríbenos:</p>
+        <ul class="apoyo-contactos">
+          <li>Correo: <a href="mailto:senshiecuador@gmail.com">senshiecuador@gmail.com</a></li>
+          <li>Alex Díaz en <a href="https://www.linkedin.com/in/alex-d%C3%ADaz-6b35bb104/" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+          <li>Danilo Hernandez en <a href="https://www.linkedin.com/in/daniloh52139/" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+        </ul>
+      </div>
+      <div class="tuto-pie">
+        <button type="button" class="btn" id="apoyo-tutorial">Ver el tutorial</button>
+        <button type="button" class="btn btn-primary" id="apoyo-entrar">Entrar al sitio</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Tutorial para usuarios nuevos (se abre solo la primera vez; botón «?» de la barra superior) -->
   <div id="tutorial-overlay" class="tuto-overlay" hidden>
     <div class="tuto" role="dialog" aria-modal="true" aria-labelledby="tuto-titulo">
@@ -489,7 +513,7 @@
   </div>
 
   <script src="js/red-orbital.js?v=25"></script>
-  <script src="js/app.js?v=12.1.0"></script>
+  <script src="js/app.js?v=12.2.0"></script>
   <script src="js/demo.js?v=5"></script>
 </body>
 </html>

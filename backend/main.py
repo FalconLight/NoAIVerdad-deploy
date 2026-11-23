@@ -138,8 +138,12 @@ async def _guardia_despliegue(request: Request, call_next):
             return JSONResponse({"detail": "Not Found"}, status_code=404)
         respuesta = await call_next(request)
         if respuesta.status_code == 200:
-            # caché compartida en la CDN: muchas visitas al showcase = pocas ejecuciones del backend
-            respuesta.headers["Cache-Control"] = "public, max-age=60, s-maxage=300, stale-while-revalidate=900"
+            # caché compartida en la CDN: muchas visitas al showcase = pocas ejecuciones del backend. Los anuncios salen de la copia incluida
+            # y solo cambian con un nuevo despliegue (que vacía la caché de Vercel): un día en la CDN. Las noticias en vivo, una hora.
+            if request.url.path.startswith("/api/noticias"):
+                respuesta.headers["Cache-Control"] = "public, max-age=300, s-maxage=3600, stale-while-revalidate=3600"
+            else:
+                respuesta.headers["Cache-Control"] = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800"
         return respuesta
     return await call_next(request)
 
@@ -464,6 +468,29 @@ def obtener_estadisticas_dashboard(provincia: Optional[str] = Query(None)):
     nombre = nombre_provincia(provincia)
     ads = unified_service.ads_library
     ahora = datetime.now().isoformat(timespec="seconds")
+
+    if nombre and _SOLO_LECTURA:
+        # Despliegue público: sin consultas en vivo a noticias, Bluesky ni YouTube (gastan el tiempo de la función en cada visita).
+        # Solo el resumen de anuncios de Meta, que sale de la copia incluida.
+        gasto = ads.top_gastadores(nombre, 1)
+        r = gasto.get("resumen") or {}
+        n = html.escape(nombre)
+        resumen = (
+            f"En <strong>{n}</strong> hay <span class='summary-highlight'>{r['anuncios']} anuncios políticos de Meta</span> con alcance en la provincia, "
+            f"de <strong>{r.get('anunciantes', 0)} anunciantes</strong>."
+            if r.get("anuncios") else f"No hay anuncios políticos de Meta con alcance en <strong>{n}</strong> para los filtros elegidos."
+        )
+        return {
+            "provincia": nombre,
+            "alcance": "provincia",
+            "datos_demostrativos": False,
+            "total_publicaciones": r.get("anuncios", 0),
+            "distribucion_fuentes": {"meta_ads": r.get("anuncios", 0)},
+            "estados": {"meta_ads": gasto.get("estado") or {}},
+            "resumen_anuncios": r or None,
+            "resumen_general": resumen,
+            "timestamp": ahora,
+        }
 
     if nombre:
         feed = unified_service.obtener_feed_completo(nombre)

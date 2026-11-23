@@ -180,10 +180,36 @@ function origenesApi() {
   return lista.filter((o, i) => o && /^https?:\/\//.test(o) && lista.indexOf(o) === i).map((o) => o.replace(/\/$/, ""));
 }
 
+// ---------------------------------------------------------------------------
+// Showcase: respuestas precalculadas (deploy/precalcular_api.py). Las vistas más pedidas se sirven como archivos estáticos desde la CDN,
+// sin ejecutar la función de Python (el plan gratuito de Vercel limita su tiempo de CPU). Si el archivo falla, se pide a la API como siempre.
+// ---------------------------------------------------------------------------
+const estaticos = { rutas: null, defecto: null };
+
+async function cargarEstaticos() {
+  if (!(window.NOAI_CONFIG && window.NOAI_CONFIG.showcase)) return;
+  try {
+    const m = await fetchJSON("data/api/manifest.json", { timeout: 4000 });
+    estaticos.rutas = m && m.rutas ? m.rutas : null;
+    estaticos.defecto = m && m.defecto ? m.defecto : null;
+  } catch (e) { /* sin precalculados: todo va a la API */ }
+  // Acceso limitado por ahora: por defecto, solo los anuncios activos de los últimos 7 días de la copia
+  const d = estaticos.defecto;
+  if (d && d.desde && d.hasta) {
+    state.soloActivos = d.solo_activos !== false;
+    state.fechas = { desde: d.desde, hasta: d.hasta };
+  }
+}
+
 async function fetchApi(ruta, opciones = {}) {
   if (state.sinCne && /^\/api\/(ads|dashboard|noticias)/.test(ruta)) ruta += (ruta.includes("?") ? "&" : "?") + "sin_cne=true";
   if (state.soloActivos && /^\/api\/(ads|dashboard|noticias)/.test(ruta)) ruta += (ruta.includes("?") ? "&" : "?") + "solo_activos=true";
   if (state.fechas.desde && /^\/api\/(ads|dashboard|noticias)/.test(ruta)) ruta += (ruta.includes("?") ? "&" : "?") + `fecha_desde=${state.fechas.desde}&fecha_hasta=${state.fechas.hasta || state.fechas.desde}`;
+  const archivo = estaticos.rutas && estaticos.rutas[ruta];
+  if (archivo) {
+    try { return await fetchJSON(`data/api/${archivo}`, opciones); }
+    catch (e) { if (e.message === "cancelado") throw e; }
+  }
   let ultimoError = new Error("sin origen disponible");
   for (const origen of origenesApi()) {
     try {
@@ -559,9 +585,58 @@ function initTutorial() {
       else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero.focus(); }
     }
   }, true);
+  if (window.NOAI_CONFIG && window.NOAI_CONFIG.showcase) return;     // en el showcase se abre primero el aviso de apoyo (initAvisoApoyo)
   let visto = false;
   try { visto = localStorage.getItem("noai_tutorial_visto") === "1"; } catch (e) { /* sin almacenamiento */ }
   if (!visto) setTimeout(() => { if (!document.querySelector("#modal-auth-overlay.active")) abrirTutorial(0); }, 900);
+}
+
+// ---------------------------------------------------------------------------
+// Showcase: aviso de acceso limitado y búsqueda de apoyo (se abre al entrar, una vez por sesión; botón «Apóyanos» de la barra superior)
+// ---------------------------------------------------------------------------
+const avisoApoyo = { retorno: null };
+
+function abrirAvisoApoyo() {
+  const ov = $("apoyo-overlay");
+  if (!ov) return;
+  const d = estaticos.defecto;
+  $("apoyo-rango").textContent = d && d.desde ? `del ${diaCorto(d.desde)} al ${diaCorto(d.hasta)}` : "de la última semana";
+  avisoApoyo.retorno = document.activeElement;
+  ov.hidden = false;
+  $("apoyo-entrar").focus();
+}
+
+function cerrarAvisoApoyo() {
+  const ov = $("apoyo-overlay");
+  if (!ov || ov.hidden) return;
+  ov.hidden = true;
+  try { sessionStorage.setItem("noai_aviso_apoyo", "1"); } catch (e) { /* sin almacenamiento */ }
+  if (avisoApoyo.retorno && avisoApoyo.retorno.focus) avisoApoyo.retorno.focus();
+}
+
+function initAvisoApoyo() {
+  const ov = $("apoyo-overlay"), btn = $("btn-apoyo");
+  if (!ov) return;
+  if (!(window.NOAI_CONFIG && window.NOAI_CONFIG.showcase)) { if (btn) btn.hidden = true; return; }
+  if (btn) { btn.hidden = false; btn.addEventListener("click", abrirAvisoApoyo); }
+  $("apoyo-cerrar").addEventListener("click", cerrarAvisoApoyo);
+  $("apoyo-entrar").addEventListener("click", cerrarAvisoApoyo);
+  $("apoyo-tutorial").addEventListener("click", () => { cerrarAvisoApoyo(); abrirTutorial(0); });
+  ov.addEventListener("click", (e) => { if (e.target.id === "apoyo-overlay") cerrarAvisoApoyo(); });
+  document.addEventListener("keydown", (e) => {
+    if (ov.hidden) return;
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); cerrarAvisoApoyo(); }
+    else if (e.key === "Tab") {   // el foco se queda dentro del cuadro
+      const f = [...ov.querySelectorAll("button, a[href]")].filter((x) => !x.disabled && x.offsetParent !== null);
+      if (!f.length) return;
+      const primero = f[0], ultimo = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === primero) { e.preventDefault(); ultimo.focus(); }
+      else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero.focus(); }
+    }
+  }, true);
+  let visto = false;
+  try { visto = sessionStorage.getItem("noai_aviso_apoyo") === "1"; } catch (e) { /* sin almacenamiento */ }
+  if (!visto && !/[?&]demo=1/.test(location.search)) setTimeout(abrirAvisoApoyo, 600);
 }
 
 function initTheme() {
@@ -3773,12 +3848,14 @@ function renderComparacion(d) {
 // ---------------------------------------------------------------------------
 // Inicio
 // ---------------------------------------------------------------------------
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await cargarEstaticos();            // showcase: fija los filtros por defecto antes de pintar los interruptores y pedir datos
   initTheme();
   initSinCne();
   initSoloActivos();
   initFechas();
   initTutorial();
+  initAvisoApoyo();
   initPanel();
   initResumen();
   initFicha();
