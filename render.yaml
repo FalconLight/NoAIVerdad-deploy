@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: noaiverdad
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: NOAI_SOLO_LECTURA
+        value: "true"
+      - key: AD_LIBRARY_SNAPSHOT
+        value: backend/data/ads_snapshot.jsonl.gz
+      - key: AD_LIBRARY_SOLO_COPIA
+        value: "true"
+      - key: AD_LIBRARY_SEGUNDO_PLANO
+        value: "false"
+      - key: META_INTEGRATION_ENABLED
+        value: "false"
+      - key: CORS_ORIGINS
+        value: "*"

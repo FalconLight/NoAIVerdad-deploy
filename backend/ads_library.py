@@ -902,7 +902,8 @@ class AdLibraryClient:
         self.min_region_pct = _env_float("AD_LIBRARY_MIN_REGION_PCT", 0.05)
         self.url = GRAPH_URL.format(version=self.version)
         carpeta = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-        self.snapshot_path = os.getenv("AD_LIBRARY_SNAPSHOT", os.path.join(carpeta, "ads_snapshot.json"))
+        _def_snap = os.path.join(carpeta, "ads_snapshot.jsonl.gz") if os.path.exists(os.path.join(carpeta, "ads_snapshot.jsonl.gz")) else os.path.join(carpeta, "ads_snapshot.json")
+        self.snapshot_path = os.getenv("AD_LIBRARY_SNAPSHOT", _def_snap)
         # Archivo histórico (archivo_meta.py): cada descarga se fusiona en él con la respuesta cruda de Meta, para conservar los anuncios que
         # salen de la ventana de `days` días. Por defecto va junto a la copia local; AD_LIBRARY_ARCHIVAR=false lo apaga.
         self.archivar = os.getenv("AD_LIBRARY_ARCHIVAR", "true").strip().lower() not in ("0", "false", "no")

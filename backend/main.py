@@ -16,10 +16,16 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
+# Asegurar que el directorio backend está en sys.path
+_DIR_ACTUAL = os.path.dirname(os.path.abspath(__file__))
+import sys
+if _DIR_ACTUAL not in sys.path:
+    sys.path.insert(0, _DIR_ACTUAL)
+
 # Cargar variables de entorno si existen (.env)
 load_dotenv()
 # Secretos locales (fuera de git): sobrescriben a .env, p. ej. META_AD_LIBRARY_TOKEN, GNEWS_API_KEY, X_BEARER_TOKEN
-load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env.local"), override=True)
+load_dotenv(os.path.join(_DIR_ACTUAL, ".env.local"), override=True)
 
 from meta_service import UnifiedFeedService
 import firebase_store
@@ -118,9 +124,12 @@ app = FastAPI(
 )
 
 # Configuración de CORS middleware
+_cors_env = os.getenv("CORS_ORIGINS", "*").strip()
+_allow_origins = ["*"] if _cors_env == "*" else [o.strip() for o in _cors_env.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[] if _SOLO_LECTURA else ["*"],      # público: solo la propia página (mismo dominio) usa la API
+    allow_origins=_allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -129,12 +138,17 @@ app.add_middleware(
 
 @app.middleware("http")
 async def _guardia_despliegue(request: Request, call_next):
-    """Cierra el backend en el despliegue público (NOAI_SOLO_LECTURA): solo se consultan las rutas de datos de la app."""
+    """Cierra el backend en el despliegue público (NOAI_SOLO_LECTURA): solo se consultan las rutas de datos de la app y archivos estáticos."""
     from fastapi.responses import JSONResponse
     if _SOLO_LECTURA:
         if request.method not in ("GET", "HEAD"):
             return JSONResponse({"detail": "Esta versión pública es de solo lectura."}, status_code=403)
-        if not _RUTAS_DE_DATOS.match(request.url.path):
+        es_estatico = (
+            request.url.path == "/"
+            or any(request.url.path.startswith(p) for p in ("/css", "/js", "/data", "/docs", "/assets", "/favicon.ico"))
+            or request.url.path.endswith((".html", ".png", ".jpg", ".svg", ".json", ".geojson", ".ico"))
+        )
+        if not _RUTAS_DE_DATOS.match(request.url.path) and not es_estatico:
             return JSONResponse({"detail": "Not Found"}, status_code=404)
         respuesta = await call_next(request)
         if respuesta.status_code == 200:
@@ -142,7 +156,7 @@ async def _guardia_despliegue(request: Request, call_next):
             # y solo cambian con un nuevo despliegue (que vacía la caché de Vercel): un día en la CDN. Las noticias en vivo, una hora.
             if request.url.path.startswith("/api/noticias"):
                 respuesta.headers["Cache-Control"] = "public, max-age=300, s-maxage=3600, stale-while-revalidate=3600"
-            else:
+            elif request.url.path.startswith("/api/"):
                 respuesta.headers["Cache-Control"] = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800"
         return respuesta
     return await call_next(request)
@@ -645,6 +659,16 @@ def obtener_analisis_palabras_clave(q: Optional[str] = Query(None), provincia: O
             "relacionados": relacionados,
         }
     }
+
+
+# Servir frontend estático si existe
+_DIR_RAIZ = os.path.dirname(_DIR_ACTUAL)
+_FRONTEND_DIR = os.path.join(_DIR_RAIZ, "frontend")
+_PUBLIC_DIR = os.path.join(_DIR_RAIZ, "public")
+_static_dir = _PUBLIC_DIR if os.path.isdir(_PUBLIC_DIR) else (_FRONTEND_DIR if os.path.isdir(_FRONTEND_DIR) else None)
+if _static_dir:
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/", StaticFiles(directory=_static_dir, html=True), name="frontend")
 
 
 if __name__ == "__main__":
