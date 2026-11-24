@@ -43,6 +43,18 @@ _SOLO_LECTURA = os.getenv("NOAI_SOLO_LECTURA", "").strip().lower() in ("1", "tru
 _RUTAS_DE_DATOS = re.compile(r"^/api/(ads/(mapa|comparar|top-gastadores|red-pagadores|afiliaciones|anuncios|textos-duplicados(/par)?|enlaces/par)"
                              r"|dashboard/(stats|keywords)|noticias)/?$")
 
+_DIR_RAIZ = os.path.dirname(_DIR_ACTUAL)
+_MANIFEST_PATH = os.path.join(_DIR_RAIZ, "frontend", "data", "api", "manifest.json")
+_DATA_API_DIR = os.path.join(_DIR_RAIZ, "frontend", "data", "api")
+_RUTAS_PRECALCULADAS = {}
+if os.path.exists(_MANIFEST_PATH):
+    try:
+        import json as _json
+        with open(_MANIFEST_PATH, "r", encoding="utf-8") as _mf:
+            _RUTAS_PRECALCULADAS = _json.load(_mf).get("rutas", {})
+    except Exception:
+        pass
+
 
 async def _scheduled_collection_loop():
     interval = max(900, int(os.getenv("NEWS_REFRESH_INTERVAL_SECONDS", "21600")))
@@ -59,8 +71,12 @@ async def _scheduled_collection_loop():
 def _calentar_anuncios():
     """Descarga los anuncios de Meta al arrancar (tarda decenas de segundos): así la primera visita ya los encuentra en caché."""
     try:
-        unified_service.ads_library.obtener_nacional()
-        unified_service.ads_library.precalcular()           # y la comparación de textos (mensajes repetidos y red), que tarda unos segundos
+        # En entornos con límite de memoria (p. ej. Render Free con 512 MB), cargar 108k anuncios consume ~700 MB
+        # Por defecto no calentamos al arrancar en despliegues públicos de solo lectura para evitar OOM (código 137 / 502)
+        if os.getenv("AD_LIBRARY_CALENTAR", "false" if _SOLO_LECTURA else "true").strip().lower() in ("1", "true", "yes", "si", "sí"):
+            unified_service.ads_library.obtener_nacional()
+            if not _SOLO_LECTURA:
+                unified_service.ads_library.precalcular()
     except Exception:
         logger.exception("No se pudo calentar la caché de anuncios de Meta.")
 
@@ -143,6 +159,20 @@ async def _guardia_despliegue(request: Request, call_next):
     if _SOLO_LECTURA:
         if request.method not in ("GET", "HEAD"):
             return JSONResponse({"detail": "Esta versión pública es de solo lectura."}, status_code=403)
+
+        # Servir respuesta precalculada directamente si coincide la ruta para ahorrar memoria
+        if _RUTAS_PRECALCULADAS and request.url.path.startswith("/api/"):
+            query_str = ("?" + request.url.query) if request.url.query else ""
+            full_path = request.url.path + query_str
+            archivo_precalc = _RUTAS_PRECALCULADAS.get(full_path)
+            if archivo_precalc:
+                ruta_disco = os.path.join(_DATA_API_DIR, archivo_precalc)
+                if os.path.exists(ruta_disco):
+                    from fastapi.responses import FileResponse
+                    resp = FileResponse(ruta_disco, media_type="application/json")
+                    resp.headers["Cache-Control"] = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800"
+                    return resp
+
         es_estatico = (
             request.url.path == "/"
             or any(request.url.path.startswith(p) for p in ("/css", "/js", "/data", "/docs", "/assets", "/favicon.ico"))
