@@ -227,7 +227,12 @@ def _norm(texto: Any) -> str:
 
 @app.get("/")
 def read_root():
-    """Ruta raíz para verificación de estado del servidor."""
+    """Ruta raíz: sirve el frontend de la aplicación web o el estado del sistema."""
+    if _static_dir:
+        index_file = os.path.join(_static_dir, "index.html")
+        if os.path.exists(index_file):
+            from fastapi.responses import FileResponse
+            return FileResponse(index_file)
     return {
         "sistema": "NoAIVerdad API v6.0",
         "estado": "Activo",
